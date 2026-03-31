@@ -1,0 +1,256 @@
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+@import 'tailwindcss';
+
+@theme inline {
+  --font-sans: 'Plus Jakarta Sans', 'Manrope', 'Segoe UI', sans-serif;
+  --font-display: 'Plus Jakarta Sans', 'Manrope', 'Segoe UI', sans-serif;
+  --color-background: var(--bg);
+  --color-elevated: var(--bg-elevated);
+  --color-card: var(--card);
+  --color-surface-2: var(--surface-2);
+  --color-border: var(--border);
+  --color-foreground: var(--text);
+  --color-muted-foreground: var(--muted);
+  --color-primary: var(--primary);
+  --color-primary-weak: var(--primary-weak);
+  --color-primary-strong: var(--primary-strong);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-nav-text: var(--nav-text);
+  --color-nav-active-text: var(--nav-active-text);
+  --color-danger-bg: var(--danger-bg);
+  --color-danger-border: var(--danger-border);
+  --color-danger-text: var(--danger-text);
+  --color-warning-bg: var(--warning-bg);
+  --color-warning-border: var(--warning-border);
+  --color-warning-text: var(--warning-text);
+  --radius-card: 1.5rem;
+  --radius-control: 1rem;
+  --shadow-soft: var(--shadow-soft);
+  --shadow-soft-hover: var(--shadow-soft-hover);
+}
+
+:root {
+  --toastify-color-light: #ffffff;
+  --toastify-text-color-light: #111827;
+  --toastify-color-info: #6e67f8;
+  --toastify-color-success: #16a34a;
+  --toastify-color-warning: #d97706;
+  --toastify-color-error: #dc2626;
+  --toastify-color-transparent: rgba(255, 255, 255, 0.96);
+  --bg: #f6f7fb;
+  --bg-elevated: #ffffff;
+  --card: #ffffff;
+  --surface-2: #f2f4fa;
+  --border: rgba(17, 24, 39, 0.08);
+  --text: #0f172a;
+  --muted: #64748b;
+  --primary: #6e67f8;
+  --primary-weak: #eeecff;
+  --primary-strong: #5b55e6;
+  --sidebar: #0b0f1a;
+  --sidebar-border: rgba(255, 255, 255, 0.08);
+  --nav-text: rgba(226, 232, 240, 0.86);
+  --nav-active-text: #ffffff;
+  --shadow-soft: 0 10px 30px rgba(15, 23, 42, 0.06);
+  --shadow-soft-hover: 0 14px 40px rgba(15, 23, 42, 0.1);
+  --danger-bg: #fff1f2;
+  --danger-border: #fecdd3;
+  --danger-text: #be123c;
+  --warning-bg: #fff7ed;
+  --warning-border: #fdba74;
+  --warning-text: #9a3412;
+  font-family: 'Plus Jakarta Sans', 'Manrope', 'Segoe UI', sans-serif;
+  color: var(--text);
+  background-color: var(--bg);
+}
+
+[data-theme='dark'] {
+  --toastify-color-light: #ffffff;
+  --toastify-text-color-light: #111827;
+  --bg: #0e1526;
+  --bg-elevated: #141c31;
+  --card: #131b2f;
+  --surface-2: #1a243b;
+  --border: rgba(148, 163, 184, 0.24);
+  --text: #e7ecff;
+  --muted: #9babc9;
+  --primary: #8a84ff;
+  --primary-weak: rgba(138, 132, 255, 0.18);
+  --primary-strong: #9b96ff;
+  --sidebar: #090d17;
+  --sidebar-border: rgba(255, 255, 255, 0.08);
+  --nav-text: rgba(226, 232, 240, 0.78);
+  --nav-active-text: #ffffff;
+  --shadow-soft: 0 14px 44px rgba(2, 6, 23, 0.35);
+  --shadow-soft-hover: 0 18px 52px rgba(2, 6, 23, 0.45);
+  --danger-bg: rgba(190, 24, 93, 0.2);
+  --danger-border: rgba(251, 113, 133, 0.4);
+  --danger-text: #fda4af;
+  --warning-bg: rgba(154, 52, 18, 0.26);
+  --warning-border: rgba(251, 146, 60, 0.4);
+  --warning-text: #fdba74;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+  margin: 0;
+}
+
+body {
+  min-height: 100vh;
+  color: var(--text);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  background:
+    radial-gradient(circle at 0% 0%, color-mix(in srgb, var(--primary) 16%, transparent) 0%, transparent 34%),
+    radial-gradient(circle at 100% 18%, color-mix(in srgb, #87ceeb 18%, transparent) 0%, transparent 38%),
+    var(--bg);
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    letter-spacing: -0.03em;
+  }
+
+  h1 {
+    font-size: clamp(1.375rem, 1.2rem + 0.6vw, 1.95rem);
+  }
+}
+
+@layer utilities {
+  .app-card {
+    border: 1px solid var(--border);
+    border-radius: 1.5rem;
+    background: color-mix(in srgb, var(--card) 90%, transparent);
+    box-shadow: var(--shadow-soft);
+    backdrop-filter: blur(10px);
+  }
+
+  .app-nav-item {
+    border-radius: 0.9rem;
+    color: var(--nav-text);
+    transition: all 0.2s ease;
+  }
+
+  .app-nav-item:hover {
+    background: rgba(255, 255, 255, 0.06);
+    color: #fff;
+  }
+
+  .app-nav-item-active {
+    background: var(--primary);
+    color: var(--nav-active-text);
+    box-shadow: 0 10px 25px color-mix(in srgb, var(--primary) 45%, transparent);
+  }
+
+  .app-search-pill {
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: var(--bg-elevated);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  }
+
+  .app-search-pill:focus-within {
+    border-color: color-mix(in srgb, var(--primary) 42%, transparent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 24%, transparent);
+  }
+
+  .app-btn {
+    border-radius: 999px;
+  }
+
+  .app-shell {
+    align-items: start;
+  }
+
+  .app-shell-sidebar {
+    position: sticky;
+    top: 1.25rem;
+    align-self: start;
+    height: calc(100vh - 2.5rem);
+  }
+
+  .app-topbar {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    padding-top: 0.25rem;
+  }
+
+  .section-surface {
+    border: 1px solid color-mix(in srgb, var(--border) 86%, white);
+    border-radius: 1.35rem;
+    background: color-mix(in srgb, var(--card) 80%, transparent);
+    box-shadow: 0 16px 34px rgba(15, 23, 42, 0.05);
+    backdrop-filter: blur(10px);
+  }
+
+  .section-inner {
+    border: 1px solid color-mix(in srgb, var(--border) 92%, white);
+    border-radius: 1.2rem;
+    background: color-mix(in srgb, var(--bg) 42%, transparent);
+  }
+
+  .content-auto {
+    content-visibility: auto;
+    contain-intrinsic-size: 640px;
+  }
+
+  .scrollbar-hidden {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hidden::-webkit-scrollbar {
+    display: none;
+  }
+
+  #ls-overlay-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 80;
+    background: rgba(11, 18, 36, 0.45);
+    backdrop-filter: blur(2px);
+  }
+
+  body.ls-overlay-open {
+    overflow: hidden;
+  }
+
+  @keyframes shimmer {
+    100% {
+      transform: translateX(100%);
+    }
+  }
+}

@@ -1,0 +1,15 @@
+export const queryKeys = {
+  auth: ['auth'] as const,
+  profile: (userId?: string) => ['profile', userId] as const,
+  business: (userId?: string) => ['business', userId] as const,
+  categories: ['business-categories'] as const,
+  dashboardStats: (businessId?: string) => ['business-dashboard-stats', businessId] as const,
+  offers: (businessId?: string) => ['offers', businessId] as const,
+  offer: (offerId?: string) => ['offer', offerId] as const,
+  transactions: (businessId?: string) => ['transactions', businessId] as const,
+  memberLookup: (identifier?: string) => ['member-lookup', identifier] as const,
+  tickets: ['support-tickets'] as const,
+  ticket: (ticketId?: string) => ['support-ticket', ticketId] as const,
+  ticketMessages: (ticketId?: string) => ['support-ticket-messages', ticketId] as const,
+  plans: ['subscription-plans', 'business'] as const,
+}

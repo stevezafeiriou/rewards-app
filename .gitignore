@@ -1,0 +1,16 @@
+# Environment files — NEVER commit real secrets
+.env
+.env.local
+.env.development
+.env.staging
+.env.production
+
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+.vite/
+
+# Supabase local
+# .supabase/
