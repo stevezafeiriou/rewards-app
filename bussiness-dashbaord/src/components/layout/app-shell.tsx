@@ -154,8 +154,8 @@ export function AppShell() {
 	}
 
 	const sidebar = (
-		<div className="flex h-full flex-col justify-between gap-6 rounded-[1.8rem] bg-sidebar p-5 text-nav-text shadow-[0_18px_52px_rgba(2,6,23,0.32)]">
-			<div className="flex min-h-0 flex-1 flex-col gap-6">
+		<div className="flex h-full flex-col justify-between gap-4 rounded-[1.8rem] bg-sidebar p-4 text-nav-text shadow-[0_18px_52px_rgba(2,6,23,0.32)]">
+			<div className="flex min-h-0 flex-1 flex-col gap-4">
 				<div className="flex items-center justify-between gap-3">
 					<div>
 						<p className="text-xs font-bold uppercase tracking-[0.18em] text-white/45">
@@ -174,7 +174,7 @@ export function AppShell() {
 					</button>
 				</div>
 
-				<nav className="space-y-2">
+				<nav className="min-h-0 flex-1 space-y-1.5 overflow-y-auto pr-1">
 					{navItems.map((item) => {
 						const Icon = item.icon;
 						return (
@@ -183,7 +183,7 @@ export function AppShell() {
 								to={item.to}
 								end={item.to !== '/offers' && item.to !== '/customers' && item.to !== '/support'}
 								className={({ isActive }) =>
-									`app-nav-item flex items-center gap-3 px-4 py-3 text-sm font-semibold ${
+									`app-nav-item flex items-center gap-3 px-3.5 py-2.5 text-sm font-semibold ${
 										isActive ? "app-nav-item-active" : ""
 									}`
 								}
@@ -195,28 +195,28 @@ export function AppShell() {
 						);
 					})}
 				</nav>
+			</div>
 
-				<div className="mt-auto overflow-hidden rounded-[1.65rem] border border-white/8 bg-white/5 shadow-[0_20px_42px_rgba(6,10,20,0.28)]">
-					<LazyImage
-						src={fallingImage}
-						alt="emsek.gr"
-						className="h-32 w-full object-cover"
-						wrapperClassName="h-32 w-full"
-					/>
-					<div className="border-t border-white/8 bg-white/4 p-4">
-						<p className="text-[11px] font-bold uppercase tracking-[0.18em] text-white/52">
-							Powered by
-						</p>
-						<p className="mt-1 text-xl font-extrabold tracking-[-0.03em] text-white">
-							emsek.gr
-						</p>
-					</div>
+			<div className="shrink-0 overflow-hidden rounded-[1.65rem] border border-white/8 bg-white/5 shadow-[0_20px_42px_rgba(6,10,20,0.28)]">
+				<LazyImage
+					src={fallingImage}
+					alt="emsek.gr"
+					className="h-28 w-full object-cover"
+					wrapperClassName="h-28 w-full"
+				/>
+				<div className="border-t border-white/8 bg-white/4 p-3.5">
+					<p className="text-[11px] font-bold uppercase tracking-[0.18em] text-white/52">
+						Powered by
+					</p>
+					<p className="mt-1 text-xl font-extrabold tracking-[-0.03em] text-white">
+						emsek.gr
+					</p>
 				</div>
 			</div>
 
-			<div className="space-y-3 border-t border-sidebar-border pt-4">
+			<div className="space-y-2.5 border-t border-sidebar-border pt-3.5">
 				<button
-					className="app-nav-item flex w-full items-center gap-3 px-4 py-3 text-sm font-semibold"
+					className="app-nav-item flex w-full items-center gap-3 px-3.5 py-2.5 text-sm font-semibold"
 					onClick={toggleTheme}
 				>
 					<ThemeIcon className="h-5 w-5" />
@@ -227,7 +227,7 @@ export function AppShell() {
 					</span>
 				</button>
 				<a
-					className="app-nav-item flex items-center gap-3 px-4 py-3 text-sm font-semibold"
+					className="app-nav-item flex items-center gap-3 px-3.5 py-2.5 text-sm font-semibold"
 					href="https://app.domain.com"
 					target="_blank"
 					rel="noreferrer"

@@ -21,18 +21,18 @@ INSERT INTO public.badges (
   display_order
 )
 VALUES
-  ('First Purchase', 'Made your first purchase as a member', NULL, 'milestone', 'transaction_count', 1, 1),
-  ('Regular Shopper', 'Completed 5 transactions', NULL, 'milestone', 'transaction_count', 5, 2),
-  ('Loyal Customer', 'Completed 10 transactions', NULL, 'milestone', 'transaction_count', 10, 3),
-  ('Super Loyal', 'Completed 25 transactions', NULL, 'milestone', 'transaction_count', 25, 4),
-  ('Elite Member', 'Completed 50 transactions', NULL, 'milestone', 'transaction_count', 50, 5),
-  ('Big Spender', 'Spent €100 in total', NULL, 'milestone', 'total_spent', 100, 6),
-  ('Premium Spender', 'Spent €500 in total', NULL, 'milestone', 'total_spent', 500, 7),
-  ('Explorer', 'Visited 3 different businesses', NULL, 'activity', 'businesses_visited', 3, 8),
-  ('World Traveler', 'Visited 10 different businesses', NULL, 'activity', 'businesses_visited', 10, 9),
-  ('Points Collector', 'Earned 100 reward points', NULL, 'milestone', 'rewards_earned', 100, 10),
-  ('Points Master', 'Earned 500 reward points', NULL, 'milestone', 'rewards_earned', 500, 11),
-  ('Veteran Member', 'Member for 1 year', NULL, 'milestone', 'account_age_days', 365, 12);
+  ('First Purchase', 'Made your first purchase as a member', 'badge-icons/Asset 31.svg', 'milestone', 'transaction_count', 1, 1),
+  ('Regular Shopper', 'Completed 5 transactions', 'badge-icons/Asset 34.svg', 'milestone', 'transaction_count', 5, 2),
+  ('Loyal Customer', 'Completed 10 transactions', 'badge-icons/Asset 2.svg', 'milestone', 'transaction_count', 10, 3),
+  ('Super Loyal', 'Completed 25 transactions', 'badge-icons/Asset 24.svg', 'milestone', 'transaction_count', 25, 4),
+  ('Elite Member', 'Completed 50 transactions', 'badge-icons/Asset 14.svg', 'milestone', 'transaction_count', 50, 5),
+  ('Big Spender', 'Spent €100 in total', 'badge-icons/Asset 18.svg', 'milestone', 'total_spent', 100, 6),
+  ('Premium Spender', 'Spent €500 in total', 'badge-icons/Asset 10.svg', 'milestone', 'total_spent', 500, 7),
+  ('Explorer', 'Visited 3 different businesses', 'badge-icons/Asset 16.svg', 'activity', 'businesses_visited', 3, 8),
+  ('World Traveler', 'Visited 10 different businesses', 'badge-icons/Asset 11.svg', 'activity', 'businesses_visited', 10, 9),
+  ('Points Collector', 'Earned 100 reward points', 'badge-icons/Asset 15.svg', 'milestone', 'rewards_earned', 100, 10),
+  ('Points Master', 'Earned 500 reward points', 'badge-icons/Asset 7.svg', 'milestone', 'rewards_earned', 500, 11),
+  ('Veteran Member', 'Member for 1 year', 'badge-icons/Asset 12.svg', 'milestone', 'account_age_days', 365, 12);
 
 INSERT INTO public.subscription_plans (
   name,

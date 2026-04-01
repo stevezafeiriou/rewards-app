@@ -148,7 +148,9 @@ export function BarcodeScanner({
           id={regionId}
           className="min-h-[280px] [&>div]:!border-0 [&_canvas]:hidden [&_video]:!h-[280px] [&_video]:!w-full [&_video]:!object-cover"
         />
-        <div className="pointer-events-none absolute inset-x-8 top-1/2 h-[2px] -translate-y-1/2 bg-primary shadow-[0_0_18px_color-mix(in_srgb,var(--primary)_55%,transparent)]" />
+        {state === 'active' ? (
+          <div className="pointer-events-none absolute inset-x-8 top-1/2 h-[2px] -translate-y-1/2 bg-primary shadow-[0_0_18px_color-mix(in_srgb,var(--primary)_55%,transparent)]" />
+        ) : null}
         {showOverlayText ? (
           <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-[radial-gradient(circle_at_top,rgba(110,103,248,0.16),transparent_32%),linear-gradient(180deg,rgba(11,15,26,0.46),rgba(11,15,26,0.74))] p-6 text-center">
             <div className="max-w-xs space-y-2">

@@ -169,11 +169,16 @@ export function IdentifyCustomerPage() {
           </CardHeader>
           <CardContent className="space-y-5">
             <div className="rounded-[1.5rem] bg-surface-2 px-4 py-4">
-              <div className="grid gap-3 sm:grid-cols-3">
+              <div className="grid gap-4 sm:grid-cols-3 sm:gap-5">
                 {[1, 2, 3].map((step) => (
-                  <div key={step} className="space-y-1">
-                    <p className="text-xs font-bold uppercase tracking-[0.16em] text-primary">{t(`customers.identify.steps.${step}.label`)}</p>
-                    <p className="text-sm leading-6 text-muted-foreground">{t(`customers.identify.steps.${step}.description`)}</p>
+                  <div key={step} className="relative space-y-2">
+                    <div className="flex items-center gap-3">
+                      <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-white shadow-[0_0_18px_color-mix(in_srgb,var(--primary)_40%,transparent)]">
+                        {step}
+                      </span>
+                      <p className="text-xs font-bold uppercase tracking-[0.16em] text-primary">{t(`customers.identify.steps.${step}.label`)}</p>
+                    </div>
+                    <p className="pl-11 text-sm leading-6 text-muted-foreground">{t(`customers.identify.steps.${step}.description`)}</p>
                   </div>
                 ))}
               </div>
