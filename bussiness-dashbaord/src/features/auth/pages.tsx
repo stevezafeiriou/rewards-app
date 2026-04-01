@@ -39,7 +39,7 @@ function getErrorMessage(error: unknown, fallback: string) {
 
 export function LandingPage() {
   const { user } = useAuth()
-  const { t } = useAppTranslation(['auth'])
+  const { t } = useAppTranslation(['auth', 'common'])
 
   if (user) {
     return <Navigate to="/dashboard" replace />
@@ -52,14 +52,9 @@ export function LandingPage() {
       asideTitle={t('auth.landing.asideTitle')}
       asideDescription={t('auth.landing.asideDescription')}
     >
-      <div className="space-y-4">
-        <div className="app-card p-6">
-          <p className="text-sm text-muted-foreground">{t('auth.landing.cardDescription')}</p>
-        </div>
-        <div className="grid gap-3 sm:grid-cols-2">
-          <Link to="/auth/register"><Button full>{t('auth.landing.register')}</Button></Link>
-          <Link to="/auth/login"><Button full variant="outline">{t('auth.landing.login')}</Button></Link>
-        </div>
+      <div className="grid gap-3 sm:grid-cols-2">
+        <Link to="/auth/register"><Button full>{t('auth.landing.register')}</Button></Link>
+        <Link to="/auth/login"><Button full variant="outline">{t('auth.landing.login')}</Button></Link>
       </div>
     </AuthShell>
   )
@@ -68,7 +63,7 @@ export function LandingPage() {
 export function LoginPage() {
   const navigate = useNavigate()
   const location = useLocation()
-  const { t } = useAppTranslation(['auth', 'validation'])
+  const { t } = useAppTranslation(['auth', 'validation', 'common'])
   const form = useForm<LoginValues>({
     resolver: zodResolver(createLoginSchema(t)),
     defaultValues: { email: '', password: '' },
@@ -98,15 +93,20 @@ export function LoginPage() {
         className="space-y-4"
         onSubmit={form.handleSubmit((values) => login.mutate(values))}
       >
-        <FormField label={t('common.fields.email')} helper={t('auth.login.emailHelper')} error={form.formState.errors.email?.message}>
+        <FormField label={t('common.fields.email')} error={form.formState.errors.email?.message}>
           <Input placeholder={t('auth.login.emailPlaceholder')} {...form.register('email')} error={form.formState.errors.email?.message} />
         </FormField>
-        <FormField label={t('auth.login.passwordPlaceholder')} helper={t('auth.login.passwordHelper')} error={form.formState.errors.password?.message}>
+        <FormField label={t('auth.login.passwordPlaceholder')} error={form.formState.errors.password?.message}>
           <Input type="password" placeholder={t('auth.login.passwordPlaceholder')} {...form.register('password')} error={form.formState.errors.password?.message} />
         </FormField>
         <Button full type="submit" loading={login.isPending} loadingText={t('auth.login.submitting')}>
           {t('auth.login.submit')}
         </Button>
+        {login.isError ? (
+          <div className="rounded-[1rem] border border-danger-border bg-danger-bg px-4 py-3 text-sm text-danger-text">
+            {getErrorMessage(login.error, t('auth.login.failed'))}
+          </div>
+        ) : null}
       </form>
 
       <div className="relative my-5 text-center text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
@@ -135,7 +135,7 @@ export function LoginPage() {
 
 export function RegisterPage() {
   const navigate = useNavigate()
-  const { t } = useAppTranslation(['auth', 'validation'])
+  const { t } = useAppTranslation(['auth', 'validation', 'common'])
   const form = useForm<RegisterValues>({
     resolver: zodResolver(createRegisterSchema(t)),
     defaultValues: { firstName: '', lastName: '', email: '', password: '' },
@@ -174,17 +174,17 @@ export function RegisterPage() {
         onSubmit={form.handleSubmit((values) => register.mutate(values))}
       >
         <div className="grid gap-4 sm:grid-cols-2">
-          <FormField label={t('auth.register.firstNamePlaceholder')} helper={t('auth.register.firstNameHelper')} error={form.formState.errors.firstName?.message}>
+          <FormField label={t('auth.register.firstNamePlaceholder')} error={form.formState.errors.firstName?.message}>
             <Input placeholder={t('auth.register.firstNamePlaceholder')} {...form.register('firstName')} error={form.formState.errors.firstName?.message} />
           </FormField>
-          <FormField label={t('auth.register.lastNamePlaceholder')} helper={t('auth.register.lastNameHelper')} error={form.formState.errors.lastName?.message}>
+          <FormField label={t('auth.register.lastNamePlaceholder')} error={form.formState.errors.lastName?.message}>
             <Input placeholder={t('auth.register.lastNamePlaceholder')} {...form.register('lastName')} error={form.formState.errors.lastName?.message} />
           </FormField>
         </div>
-        <FormField label={t('common.fields.email')} helper={t('auth.register.emailHelper')} error={form.formState.errors.email?.message}>
+        <FormField label={t('common.fields.email')} error={form.formState.errors.email?.message}>
           <Input placeholder={t('auth.register.emailPlaceholder')} {...form.register('email')} error={form.formState.errors.email?.message} />
         </FormField>
-        <FormField label={t('auth.register.passwordPlaceholder')} helper={t('auth.register.passwordHelper')} error={form.formState.errors.password?.message}>
+        <FormField label={t('auth.register.passwordPlaceholder')} error={form.formState.errors.password?.message}>
           <Input type="password" placeholder={t('auth.register.passwordPlaceholder')} {...form.register('password')} error={form.formState.errors.password?.message} />
         </FormField>
         <Button full type="submit" loading={register.isPending} loadingText={t('auth.register.submitting')}>
@@ -226,7 +226,7 @@ export function ForgotPasswordPage() {
         className="space-y-4"
         onSubmit={form.handleSubmit((values) => reset.mutate(values))}
       >
-        <FormField label={t('common.fields.email')} helper={t('auth.forgotPassword.emailHelper')} error={form.formState.errors.email?.message}>
+        <FormField label={t('common.fields.email')} error={form.formState.errors.email?.message}>
           <Input placeholder={t('auth.forgotPassword.emailPlaceholder')} {...form.register('email')} error={form.formState.errors.email?.message} />
         </FormField>
         <Button full type="submit" loading={reset.isPending} loadingText={t('common.states.loading')}>
@@ -281,7 +281,7 @@ export function ResetPasswordPage() {
 export function AuthCallbackPage() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
-  const { t } = useAppTranslation(['auth'])
+  const { t } = useAppTranslation(['auth', 'common'])
 
   const callback = useMutation({
     mutationFn: async () => {

@@ -82,8 +82,7 @@ CREATE TABLE public.businesses (
   postal_code text,
   region text,
   country text DEFAULT 'GR',
-  latitude numeric(10, 7),
-  longitude numeric(10, 7),
+  google_business_url text,
   phone text,
   email text,
   website text,
@@ -348,6 +347,18 @@ CREATE TABLE public.platform_settings (
   updated_at timestamptz NOT NULL DEFAULT now()
 );
 
+CREATE TABLE public.user_notification_preferences (
+  user_id uuid PRIMARY KEY REFERENCES public.profiles(id) ON DELETE CASCADE,
+  email_support_updates boolean NOT NULL DEFAULT true,
+  email_billing_updates boolean NOT NULL DEFAULT true,
+  email_product_updates boolean NOT NULL DEFAULT false,
+  in_app_support_updates boolean NOT NULL DEFAULT true,
+  in_app_billing_updates boolean NOT NULL DEFAULT true,
+  in_app_product_updates boolean NOT NULL DEFAULT true,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now()
+);
+
 CREATE TABLE public.lemon_squeezy_webhook_events (
   event_id text PRIMARY KEY,
   event_name text NOT NULL,
@@ -370,6 +381,65 @@ BEGIN
     WHERE id = auth.uid()
       AND role = p_role
   );
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.should_deliver_in_app_notification(
+  p_user_id uuid,
+  p_category text
+)
+RETURNS boolean
+LANGUAGE plpgsql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  prefs public.user_notification_preferences%ROWTYPE;
+BEGIN
+  SELECT *
+  INTO prefs
+  FROM public.user_notification_preferences
+  WHERE user_id = p_user_id;
+
+  IF NOT FOUND THEN
+    RETURN true;
+  END IF;
+
+  CASE p_category
+    WHEN 'support' THEN RETURN prefs.in_app_support_updates;
+    WHEN 'billing' THEN RETURN prefs.in_app_billing_updates;
+    WHEN 'product' THEN RETURN prefs.in_app_product_updates;
+    ELSE RETURN true;
+  END CASE;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.create_in_app_notification(
+  p_user_id uuid,
+  p_title text,
+  p_body text DEFAULT NULL,
+  p_type text DEFAULT 'system',
+  p_metadata jsonb DEFAULT '{}'::jsonb,
+  p_category text DEFAULT 'product'
+)
+RETURNS uuid
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_notification_id uuid;
+BEGIN
+  IF NOT public.should_deliver_in_app_notification(p_user_id, p_category) THEN
+    RETURN NULL;
+  END IF;
+
+  INSERT INTO public.notifications (user_id, title, body, type, metadata)
+  VALUES (p_user_id, p_title, p_body, p_type, p_metadata)
+  RETURNING id INTO v_notification_id;
+
+  RETURN v_notification_id;
 END;
 $$;
 
@@ -1298,6 +1368,46 @@ BEGIN
 END;
 $$;
 
+CREATE OR REPLACE FUNCTION public.notify_support_ticket_reply()
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_created_by uuid;
+  v_subject text;
+BEGIN
+  IF NEW.is_internal THEN
+    RETURN NEW;
+  END IF;
+
+  SELECT created_by, subject
+  INTO v_created_by, v_subject
+  FROM public.support_tickets
+  WHERE id = NEW.ticket_id;
+
+  IF v_created_by IS NULL OR v_created_by = NEW.sender_id THEN
+    RETURN NEW;
+  END IF;
+
+  PERFORM public.create_in_app_notification(
+    v_created_by,
+    'New support reply',
+    format('There is a new reply on your ticket "%s".', v_subject),
+    'system',
+    jsonb_build_object(
+      'ticket_id', NEW.ticket_id,
+      'message_id', NEW.id,
+      'notification_category', 'support'
+    ),
+    'support'
+  );
+
+  RETURN NEW;
+END;
+$$;
+
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
@@ -1326,12 +1436,20 @@ CREATE TRIGGER support_tickets_set_updated_at
   BEFORE UPDATE ON public.support_tickets
   FOR EACH ROW EXECUTE FUNCTION public.update_updated_at();
 
+CREATE TRIGGER support_ticket_messages_notify_owner
+  AFTER INSERT ON public.support_ticket_messages
+  FOR EACH ROW EXECUTE FUNCTION public.notify_support_ticket_reply();
+
 CREATE TRIGGER subscription_plans_set_updated_at
   BEFORE UPDATE ON public.subscription_plans
   FOR EACH ROW EXECUTE FUNCTION public.update_updated_at();
 
 CREATE TRIGGER platform_settings_set_updated_at
   BEFORE UPDATE ON public.platform_settings
+  FOR EACH ROW EXECUTE FUNCTION public.update_updated_at();
+
+CREATE TRIGGER user_notification_preferences_set_updated_at
+  BEFORE UPDATE ON public.user_notification_preferences
   FOR EACH ROW EXECUTE FUNCTION public.update_updated_at();
 
 CREATE OR REPLACE VIEW public.v_active_marketplace_businesses AS
@@ -1344,8 +1462,7 @@ SELECT
   b.cover_image_url,
   b.city,
   b.region,
-  b.latitude,
-  b.longitude,
+  b.google_business_url,
   bc.name AS category_name,
   bc.slug AS category_slug,
   bc.icon AS category_icon,
@@ -1381,6 +1498,7 @@ ALTER TABLE public.support_ticket_messages ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.subscription_plans ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.admin_audit_log ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.platform_settings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.user_notification_preferences ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.lemon_squeezy_webhook_events ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY profiles_select_own
@@ -1738,6 +1856,28 @@ CREATE POLICY settings_modify_admin
   USING (public.current_user_has_role('admin'))
   WITH CHECK (public.current_user_has_role('admin'));
 
+CREATE POLICY notification_preferences_select_own
+  ON public.user_notification_preferences
+  FOR SELECT
+  USING (auth.uid() = user_id);
+
+CREATE POLICY notification_preferences_insert_own
+  ON public.user_notification_preferences
+  FOR INSERT
+  WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY notification_preferences_update_own
+  ON public.user_notification_preferences
+  FOR UPDATE
+  USING (auth.uid() = user_id)
+  WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY notification_preferences_admin_all
+  ON public.user_notification_preferences
+  FOR ALL
+  USING (public.current_user_has_role('admin'))
+  WITH CHECK (public.current_user_has_role('admin'));
+
 CREATE POLICY webhook_events_admin_only
   ON public.lemon_squeezy_webhook_events
   FOR ALL
@@ -1768,6 +1908,7 @@ GRANT SELECT, INSERT, UPDATE ON public.support_tickets TO authenticated;
 GRANT SELECT, INSERT ON public.support_ticket_messages TO authenticated;
 GRANT INSERT ON public.admin_audit_log TO authenticated;
 GRANT SELECT ON public.platform_settings TO authenticated;
+GRANT SELECT, INSERT, UPDATE ON public.user_notification_preferences TO authenticated;
 
 REVOKE ALL ON FUNCTION public.current_user_has_role(public.user_role) FROM PUBLIC;
 REVOKE ALL ON FUNCTION public.is_business_staff_member(uuid) FROM PUBLIC;

@@ -250,8 +250,7 @@ function deriveBusinessFromDraft(business: Business | null | undefined, draft: O
     postal_code: business?.postal_code ?? draft.postal_code ?? '',
     region: business?.region ?? draft.region ?? '',
     country: business?.country ?? draft.country ?? 'GR',
-    latitude: business?.latitude ?? draft.latitude ?? null,
-    longitude: business?.longitude ?? draft.longitude ?? null,
+    google_business_url: business?.google_business_url ?? draft.google_business_url ?? '',
     phone: business?.phone ?? draft.phone ?? '',
     email: business?.email ?? draft.email ?? '',
     website: business?.website ?? draft.website ?? '',
@@ -319,11 +318,15 @@ function StepCard({
   category,
   onSelect,
   fallbackDescription,
+  displayName,
+  displayDescription,
 }: {
   active: boolean
   category: BusinessCategory
   onSelect: (categoryId: string) => void
   fallbackDescription: string
+  displayName: string
+  displayDescription: string
 }) {
   return (
     <button
@@ -337,8 +340,11 @@ function StepCard({
     >
       <div className="flex items-start justify-between gap-4">
         <div className="space-y-2">
-          <p className="text-base font-bold text-foreground">{category.name}</p>
-          <p className="text-sm text-muted-foreground">{category.description ?? fallbackDescription}</p>
+          <div className="flex items-center gap-2">
+            <span className="text-lg leading-none" aria-hidden="true">{category.icon ?? '🏪'}</span>
+            <p className="text-base font-bold text-foreground">{displayName}</p>
+          </div>
+          <p className="text-sm text-muted-foreground">{displayDescription || fallbackDescription}</p>
         </div>
         {active ? (
           <span className="inline-flex size-8 items-center justify-center rounded-full bg-primary text-white">
@@ -380,7 +386,7 @@ function OnboardingShell({
   }, [location.pathname, navigate, snapshot, step.key, steps])
 
   return (
-    <div className="min-h-screen px-4 py-6 sm:px-6 lg:px-8">
+    <div className="flex min-h-screen items-center px-4 py-6 sm:px-6 lg:px-8">
       <div className="mx-auto flex w-full max-w-[1160px] flex-col gap-6">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="space-y-2">
@@ -422,20 +428,25 @@ function OnboardingShell({
           <Card className="overflow-hidden">
             <CardContent className="p-5 sm:p-6 lg:p-8">{children}</CardContent>
           </Card>
-          <Card className="h-fit">
+          <Card className="h-full !border-sidebar-border !bg-sidebar !text-nav-text shadow-[0_18px_52px_rgba(2,6,23,0.32)]">
             <CardHeader>
-              <CardTitle className="text-xl">{step.sideTitle}</CardTitle>
-              <CardDescription>
+              <CardTitle className="text-xl text-white">{step.sideTitle}</CardTitle>
+              <CardDescription className="text-white/60">
                 {business?.name ? `${t('common.labels.currentDraft')}: ${business.name}` : t('common.labels.draftBusinessProfile')}
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="flex h-full flex-col space-y-4">
               {step.sideBullets.map((bullet, index) => (
                 <div key={bullet} className="flex items-start gap-3">
-                  <div className="mt-0.5 inline-flex size-6 shrink-0 items-center justify-center rounded-full bg-primary-weak text-xs font-bold text-primary">
-                    {index + 1}
+                  <div className="relative flex shrink-0 flex-col items-center">
+                    <div className="inline-flex size-7 items-center justify-center rounded-full bg-primary text-xs font-bold text-white shadow-[0_10px_25px_color-mix(in_srgb,var(--primary)_45%,transparent)]">
+                      {index + 1}
+                    </div>
+                    {index < step.sideBullets.length - 1 ? (
+                      <div className="mt-2 h-8 w-px bg-[color-mix(in_srgb,var(--primary)_45%,transparent)]" />
+                    ) : null}
                   </div>
-                  <p className="text-sm leading-6 text-muted-foreground">{bullet}</p>
+                  <p className="text-sm leading-6 text-white/78">{bullet}</p>
                 </div>
               ))}
             </CardContent>
@@ -566,6 +577,18 @@ export function CategoryStep() {
     },
   })
 
+  function getCategoryCopy(category: BusinessCategory) {
+    const nameKey = `onboarding.categoryCatalog.${category.slug}.name`
+    const descriptionKey = `onboarding.categoryCatalog.${category.slug}.description`
+    const translatedName = t(nameKey)
+    const translatedDescription = t(descriptionKey)
+
+    return {
+      name: translatedName === nameKey ? category.name : translatedName,
+      description: translatedDescription === descriptionKey ? (category.description ?? t('onboarding.fields.categoryDescriptionFallback')) : translatedDescription,
+    }
+  }
+
   return (
     <OnboardingShell>
       <form
@@ -575,13 +598,20 @@ export function CategoryStep() {
         <FieldBlock label={t('onboarding.fields.category')} helper={t('onboarding.fields.categoryHelper')} error={form.formState.errors.categoryId?.message}>
           <div className="grid gap-3 lg:grid-cols-2">
             {categories.data?.map((category) => (
+              (() => {
+                const copy = getCategoryCopy(category)
+                return (
               <StepCard
                 key={category.id}
                 active={selectedCategoryId === category.id}
                 category={category}
                 fallbackDescription={t('onboarding.fields.categoryDescriptionFallback')}
+                displayName={copy.name}
+                displayDescription={copy.description}
                 onSelect={(categoryId) => form.setValue('categoryId', categoryId, { shouldValidate: true })}
               />
+                )
+              })()
             ))}
           </div>
           {form.formState.errors.categoryId?.message ? <p className="text-xs font-medium text-danger-text">{form.formState.errors.categoryId.message}</p> : null}
@@ -613,8 +643,7 @@ export function LocationStep() {
       postal_code: initial.postal_code,
       region: initial.region,
       country: initial.country,
-      latitude: initial.latitude,
-      longitude: initial.longitude,
+      google_business_url: initial.google_business_url,
     },
   })
 
@@ -626,8 +655,7 @@ export function LocationStep() {
       postal_code: string
       region: string
       country: string
-      latitude?: number | null
-      longitude?: number | null
+      google_business_url?: string
     }) => {
       if (!business) throw new Error(t('common.errors.businessRequired'))
       const payload = {
@@ -637,8 +665,7 @@ export function LocationStep() {
         postal_code: values.postal_code,
         region: values.region,
         country: values.country,
-        latitude: values.latitude ?? null,
-        longitude: values.longitude ?? null,
+        google_business_url: values.google_business_url || null,
       }
       const updated = await updateBusinessDetails(business.id, payload)
       save({
@@ -649,8 +676,7 @@ export function LocationStep() {
         postal_code: values.postal_code,
         region: values.region,
         country: values.country,
-        latitude: values.latitude ?? null,
-        longitude: values.longitude ?? null,
+        google_business_url: values.google_business_url || '',
       })
     },
     onSuccess: async () => {
@@ -698,20 +724,9 @@ export function LocationStep() {
             </Select>
           </FieldBlock>
         </div>
-        <div className="rounded-[1rem] border border-border bg-surface-2 p-3.5">
-          <div className="mb-4 flex items-center gap-2">
-            <HiMiniMapPin className="size-5 text-primary" />
-            <p className="text-sm font-semibold text-foreground">{t('onboarding.fields.advancedCoordinates')}</p>
-          </div>
-          <div className="grid gap-4 md:grid-cols-2">
-            <FieldBlock label={t('onboarding.fields.latitude')} helper={t('onboarding.fields.latitudeHelper')} error={form.formState.errors.latitude?.message}>
-              <Input leftIcon={<HiMiniMapPin className="size-4" />} type="number" step="any" placeholder={t('onboarding.fields.latitudePlaceholder')} {...form.register('latitude')} error={form.formState.errors.latitude?.message} />
-            </FieldBlock>
-            <FieldBlock label={t('onboarding.fields.longitude')} helper={t('onboarding.fields.longitudeHelper')} error={form.formState.errors.longitude?.message}>
-              <Input leftIcon={<HiMiniMapPin className="size-4" />} type="number" step="any" placeholder={t('onboarding.fields.longitudePlaceholder')} {...form.register('longitude')} error={form.formState.errors.longitude?.message} />
-            </FieldBlock>
-          </div>
-        </div>
+        <FieldBlock label={t('onboarding.fields.googleBusinessUrl')} helper={t('onboarding.fields.googleBusinessUrlHelper')} error={form.formState.errors.google_business_url?.message}>
+          <Input leftIcon={<HiMiniGlobeAlt className="size-4" />} placeholder={t('onboarding.fields.googleBusinessUrlPlaceholder')} {...form.register('google_business_url')} error={form.formState.errors.google_business_url?.message} />
+        </FieldBlock>
         <MutationErrorText error={mutation.error} />
         <StepActions backHref="/onboarding/category" submitLabel={t('common.buttons.saveAndContinue')} submitting={mutation.isPending} />
       </form>
@@ -812,6 +827,20 @@ export function MediaStep() {
   const [profileFile, setProfileFile] = useState<File | null>(null)
   const [coverFile, setCoverFile] = useState<File | null>(null)
   const initial = deriveBusinessFromDraft(business, draft)
+  const profilePreviewUrl = useMemo(() => (profileFile ? URL.createObjectURL(profileFile) : null), [profileFile])
+  const coverPreviewUrl = useMemo(() => (coverFile ? URL.createObjectURL(coverFile) : null), [coverFile])
+
+  useEffect(() => {
+    return () => {
+      if (profilePreviewUrl) URL.revokeObjectURL(profilePreviewUrl)
+    }
+  }, [profilePreviewUrl])
+
+  useEffect(() => {
+    return () => {
+      if (coverPreviewUrl) URL.revokeObjectURL(coverPreviewUrl)
+    }
+  }, [coverPreviewUrl])
 
   const mutation = useMutation({
     mutationFn: async () => {
@@ -856,7 +885,7 @@ export function MediaStep() {
   return (
     <OnboardingShell>
       <div className="space-y-6">
-        <div className="grid gap-5 lg:grid-cols-2">
+        <div className="space-y-5">
           <div className="rounded-[1.1rem] border border-border bg-elevated p-4">
             <div className="mb-4 flex items-center gap-3">
               <div className="inline-flex size-11 items-center justify-center rounded-2xl bg-primary-weak text-primary">
@@ -865,19 +894,22 @@ export function MediaStep() {
               <div>
                 <p className="font-semibold text-foreground">{t('onboarding.fields.profileImage')}</p>
                 <p className="text-sm text-muted-foreground">{t('onboarding.fields.profileImageDescription')}</p>
+                <p className="mt-1 text-xs font-medium text-primary">{t('onboarding.fields.profileImageRecommendation')}</p>
               </div>
             </div>
             <FormField label={t('onboarding.fields.profileImage')} helper={t('onboarding.fields.uploadProfileHelper')} compact>
               <Input type="file" accept="image/*" onChange={(event) => setProfileFile(event.target.files?.[0] ?? null)} />
             </FormField>
-            <div className="mt-4 overflow-hidden rounded-[1rem] bg-surface-2">
-              {profileFile ? (
-                <LazyImage className="h-56 w-full object-cover" src={URL.createObjectURL(profileFile)} alt={t('onboarding.fields.profileImage')} />
-              ) : initial.profile_image_url ? (
-                <LazyImage className="h-56 w-full object-cover" src={initial.profile_image_url} alt={t('onboarding.fields.profileImage')} />
-              ) : (
-                <div className="flex h-56 items-center justify-center text-sm text-muted-foreground">{t('onboarding.fields.uploadProfile')}</div>
-              )}
+            <div className="mt-4 flex justify-center rounded-[1rem] bg-surface-2 px-4 py-6">
+              <div className="overflow-hidden rounded-full bg-elevated ring-1 ring-border">
+                {profilePreviewUrl ? (
+                  <LazyImage className="size-40 object-cover" src={profilePreviewUrl} alt={t('onboarding.fields.profileImage')} />
+                ) : initial.profile_image_url ? (
+                  <LazyImage className="size-40 object-cover" src={initial.profile_image_url} alt={t('onboarding.fields.profileImage')} />
+                ) : (
+                  <div className="flex size-40 items-center justify-center text-center text-sm text-muted-foreground">{t('onboarding.fields.uploadProfile')}</div>
+                )}
+              </div>
             </div>
           </div>
 
@@ -889,18 +921,19 @@ export function MediaStep() {
               <div>
                 <p className="font-semibold text-foreground">{t('onboarding.fields.coverImage')}</p>
                 <p className="text-sm text-muted-foreground">{t('onboarding.fields.coverImageDescription')}</p>
+                <p className="mt-1 text-xs font-medium text-primary">{t('onboarding.fields.coverImageRecommendation')}</p>
               </div>
             </div>
             <FormField label={t('onboarding.fields.coverImage')} helper={t('onboarding.fields.uploadCoverHelper')} compact>
               <Input type="file" accept="image/*" onChange={(event) => setCoverFile(event.target.files?.[0] ?? null)} />
             </FormField>
             <div className="mt-4 overflow-hidden rounded-[1rem] bg-surface-2">
-              {coverFile ? (
-                <LazyImage className="h-56 w-full object-cover" src={URL.createObjectURL(coverFile)} alt={t('onboarding.fields.coverImage')} />
+              {coverPreviewUrl ? (
+                <LazyImage className="h-48 w-full object-cover sm:h-52" src={coverPreviewUrl} alt={t('onboarding.fields.coverImage')} />
               ) : initial.cover_image_url ? (
-                <LazyImage className="h-56 w-full object-cover" src={initial.cover_image_url} alt={t('onboarding.fields.coverImage')} />
+                <LazyImage className="h-48 w-full object-cover sm:h-52" src={initial.cover_image_url} alt={t('onboarding.fields.coverImage')} />
               ) : (
-                <div className="flex h-56 items-center justify-center text-sm text-muted-foreground">{t('onboarding.fields.uploadCover')}</div>
+                <div className="flex h-48 items-center justify-center text-sm text-muted-foreground sm:h-52">{t('onboarding.fields.uploadCover')}</div>
               )}
             </div>
           </div>
@@ -1050,6 +1083,7 @@ export function ReviewStep() {
             <p>{snapshot.address_line1 || t('common.states.missing')} {snapshot.address_line2 || ''}</p>
             <p>{snapshot.city || t('common.states.missing')}, {snapshot.region || t('common.states.missing')} {snapshot.postal_code || ''}</p>
             <p><span className="font-semibold text-foreground">{t('common.fields.country')}:</span> {snapshot.country}</p>
+            <p><span className="font-semibold text-foreground">{t('common.fields.googleBusinessUrl')}:</span> {snapshot.google_business_url || t('common.states.notProvided')}</p>
           </ReviewPanel>
           <ReviewPanel title={t('onboarding.review.contact')} icon={<HiMiniUserCircle className="size-5" />} editHref="/onboarding/contact">
             <p><span className="font-semibold text-foreground">{t('common.fields.phone')}:</span> {snapshot.phone || t('common.states.missing')}</p>

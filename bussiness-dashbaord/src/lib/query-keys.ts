@@ -1,6 +1,9 @@
 export const queryKeys = {
   auth: ['auth'] as const,
   profile: (userId?: string) => ['profile', userId] as const,
+  notificationPreferences: (userId?: string) => ['notification-preferences', userId] as const,
+  notifications: (userId?: string, limit = 5) => ['notifications', userId, limit] as const,
+  globalSearch: (businessId?: string, query?: string) => ['global-search', businessId, query] as const,
   business: (userId?: string) => ['business', userId] as const,
   categories: ['business-categories'] as const,
   dashboardStats: (businessId?: string) => ['business-dashboard-stats', businessId] as const,

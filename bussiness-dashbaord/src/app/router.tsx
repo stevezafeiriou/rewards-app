@@ -1,5 +1,6 @@
 import { Suspense } from 'react'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
+import { AppStatusPage } from '@/components/layout/app-status-page'
 import { AppShell } from '@/components/layout/app-shell'
 import { RouteSkeleton } from '@/components/layout/page-skeleton'
 import { ActiveSubscriptionGuard, BusinessGuard, BusinessOnboardingGuard } from '@/features/auth/guards'
@@ -51,13 +52,25 @@ function NotFoundPage() {
   const { t } = useAppTranslation('common')
 
   return (
-    <div className="flex min-h-screen items-center justify-center px-6">
-      <div className="app-card max-w-lg p-10 text-center">
-        <p className="text-xs font-bold uppercase tracking-[0.18em] text-primary">{t('common.notFound.code')}</p>
-        <h1 className="mt-3 text-3xl font-extrabold text-foreground">{t('common.notFound.title')}</h1>
-        <p className="mt-3 text-sm text-muted-foreground">{t('common.notFound.description')}</p>
-      </div>
-    </div>
+    <AppStatusPage
+      code={t('common.notFound.code')}
+      title={t('common.notFound.title')}
+      description={t('common.notFound.description')}
+      primaryAction={{ label: t('common.buttons.goToDashboard'), to: '/dashboard' }}
+    />
+  )
+}
+
+function ForbiddenPage() {
+  const { t } = useAppTranslation('common')
+
+  return (
+    <AppStatusPage
+      code={t('common.system.forbidden.code')}
+      title={t('common.system.forbidden.title')}
+      description={t('common.system.forbidden.description')}
+      primaryAction={{ label: t('common.buttons.goToDashboard'), to: '/dashboard' }}
+    />
   )
 }
 
@@ -72,6 +85,8 @@ export function AppRouter() {
           <Route path="/auth/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/auth/reset-password" element={<ResetPasswordPage />} />
           <Route path="/auth/callback" element={<AuthCallbackPage />} />
+          <Route path="/403" element={<ForbiddenPage />} />
+          <Route path="/404" element={<NotFoundPage />} />
 
           <Route element={<BusinessGuard />}>
             <Route path="/onboarding/business-info" element={<BusinessInfoStep />} />
@@ -111,7 +126,7 @@ export function AppRouter() {
             </Route>
           </Route>
 
-          <Route path="*" element={<NotFoundPage />} />
+          <Route path="*" element={<Navigate to="/404" replace />} />
           <Route path="/onboarding" element={<Navigate to="/onboarding/business-info" replace />} />
         </Routes>
       </Suspense>

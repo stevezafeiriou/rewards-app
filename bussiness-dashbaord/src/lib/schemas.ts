@@ -61,8 +61,7 @@ export function createLocationSchema(t: TFunction) {
     postal_code: z.string().min(3, t('validation.postalCode')),
     region: z.string().min(2, t('validation.region')),
     country: z.string().min(2, t('validation.country')).max(2, t('validation.country')),
-    latitude: z.coerce.number().nullable().optional(),
-    longitude: z.coerce.number().nullable().optional(),
+    google_business_url: z.string().url(t('validation.url')).optional().or(z.literal('')),
   })
 }
 

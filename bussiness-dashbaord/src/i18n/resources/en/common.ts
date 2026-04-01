@@ -14,6 +14,10 @@ const common = {
     open: 'Open',
     view: 'View',
     upload: 'Upload',
+    tryAgain: 'Try again',
+    goToDashboard: 'Go to dashboard',
+    goToOffers: 'Go to offers',
+    goToSupport: 'Go to support',
   },
   states: {
     loading: 'Loading...',
@@ -90,12 +94,25 @@ const common = {
     title: 'Route not found',
     description: 'The requested business dashboard route does not exist.',
   },
+  system: {
+    forbidden: {
+      code: '403',
+      title: 'Access forbidden',
+      description: 'Your current account does not have permission to open this business dashboard area.',
+    },
+    error: {
+      code: '500',
+      title: 'Something went wrong',
+      description: 'The dashboard hit an unexpected problem. Reload the page or try again in a moment.',
+    },
+  },
   fields: {
     name: 'Name',
     description: 'Description',
     email: 'Email',
     phone: 'Phone',
     website: 'Website',
+    googleBusinessUrl: 'Google Business URL',
     city: 'City',
     region: 'Region',
     country: 'Country',

@@ -3,7 +3,7 @@ import { cn } from '@/lib/utils'
 
 type FormFieldProps = {
   label: string
-  helper: string
+  helper?: string
   error?: string
   children: ReactNode
   className?: string
@@ -27,7 +27,7 @@ export function FormField({
           {label}
           {required ? <span aria-hidden="true" className="ml-1 text-danger-text">*</span> : null}
         </p>
-        <p className="text-xs leading-5 text-muted-foreground">{helper}</p>
+        {helper ? <p className="text-xs leading-5 text-muted-foreground">{helper}</p> : null}
       </div>
       {children}
       {error ? <p className="text-xs font-medium text-danger-text">{error}</p> : null}

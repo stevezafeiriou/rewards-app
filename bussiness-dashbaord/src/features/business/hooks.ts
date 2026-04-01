@@ -5,8 +5,12 @@ import { supabase } from '@/lib/supabase'
 import type {
   BusinessCategory,
   BusinessDashboardStats,
+  GlobalSearchResults,
   MemberLookupResult,
+  Notification,
   Offer,
+  SearchOfferResult,
+  SearchTicketResult,
   SubscriptionPlan,
   SupportTicket,
   SupportTicketMessage,
@@ -130,6 +134,39 @@ export function useSubscriptionPlans() {
   })
 }
 
+export function useNotifications(userId?: string, limit = 5) {
+  return useQuery({
+    queryKey: queryKeys.notifications(userId, limit),
+    enabled: !!userId,
+    staleTime: 60_000,
+    queryFn: async (): Promise<Notification[]> => {
+      const { data, error } = await supabase
+        .from('notifications')
+        .select('*')
+        .eq('user_id', userId!)
+        .order('created_at', { ascending: false })
+        .limit(limit)
+
+      if (error) throw error
+      return data
+    },
+  })
+}
+
+export function useMarkNotificationsRead() {
+  return useMutation({
+    mutationFn: async (notificationIds: string[]) => {
+      if (notificationIds.length === 0) return
+      const { error } = await supabase
+        .from('notifications')
+        .update({ is_read: true })
+        .in('id', notificationIds)
+
+      if (error) throw error
+    },
+  })
+}
+
 export function useTickets() {
   return useQuery({
     queryKey: queryKeys.tickets,
@@ -180,6 +217,64 @@ export function useMemberLookup() {
       const { data, error } = await supabase.rpc('lookup_member', { p_identifier: identifier })
       if (error) throw error
       return data as MemberLookupResult
+    },
+  })
+}
+
+export function useGlobalSearch(query: string, businessId?: string, userId?: string) {
+  const normalizedQuery = query.trim()
+  const canSearch = normalizedQuery.length >= 2 && !!userId
+  const normalizedMemberIdentifier = normalizedQuery.replace(/\D/g, '')
+  const canLookupMember = /^\d{9}$/.test(normalizedMemberIdentifier)
+
+  return useQuery({
+    queryKey: queryKeys.globalSearch(businessId, normalizedQuery),
+    enabled: canSearch,
+    staleTime: 30_000,
+    gcTime: 5 * 60 * 1000,
+    queryFn: async (): Promise<GlobalSearchResults> => {
+      const offersPromise = businessId
+        ? supabase
+            .from('offers')
+            .select('id,title,status')
+            .eq('business_id', businessId)
+            .or(`title.ilike.%${normalizedQuery}%,description.ilike.%${normalizedQuery}%`)
+            .order('created_at', { ascending: false })
+            .limit(4)
+        : Promise.resolve({ data: [], error: null })
+
+      const ticketsPromise = supabase
+        .from('support_tickets')
+        .select('id,subject,status,updated_at')
+        .eq('created_by', userId!)
+        .ilike('subject', `%${normalizedQuery}%`)
+        .order('updated_at', { ascending: false })
+        .limit(4)
+
+      const memberPromise = canLookupMember
+        ? supabase.rpc('lookup_member', { p_identifier: normalizedMemberIdentifier })
+        : Promise.resolve({ data: null, error: null })
+
+      const [offersResponse, ticketsResponse, memberResponse] = await Promise.all([
+        offersPromise,
+        ticketsPromise,
+        memberPromise,
+      ])
+
+      if (offersResponse.error) throw offersResponse.error
+      if (ticketsResponse.error) throw ticketsResponse.error
+      if (memberResponse.error) {
+        const message = String(memberResponse.error.message ?? '')
+        if (!message.toLowerCase().includes('not found')) {
+          throw memberResponse.error
+        }
+      }
+
+      return {
+        member: memberResponse.error ? null : (memberResponse.data as MemberLookupResult | null),
+        offers: (offersResponse.data ?? []) as SearchOfferResult[],
+        tickets: (ticketsResponse.data ?? []) as SearchTicketResult[],
+      }
     },
   })
 }

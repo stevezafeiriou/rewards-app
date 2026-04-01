@@ -2,6 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
 import { Link, Navigate, useNavigate, useParams } from 'react-router-dom'
+import { AppStatusPage } from '@/components/layout/app-status-page'
 import { PageSkeleton } from '@/components/layout/page-skeleton'
 import { PageHeader } from '@/components/layout/page-header'
 import { Badge } from '@/components/ui/badge'
@@ -98,11 +99,10 @@ export function NewTicketPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader eyebrow={t('support.header.eyebrow')} title={t('support.header.newTitle')} description={t('support.header.newDescription')} />
+      <PageHeader eyebrow={t('support.header.eyebrow')} title={t('support.header.newTitle')} />
       <Card>
         <CardHeader>
           <CardTitle>{t('support.form.title')}</CardTitle>
-          <CardDescription>{t('support.form.description')}</CardDescription>
         </CardHeader>
         <CardContent>
           <form
@@ -110,19 +110,11 @@ export function NewTicketPage() {
             onSubmit={form.handleSubmit((values) => mutation.mutate(values))}
           >
             <div className="lg:col-span-2">
-              <FormField
-                label={t('support.form.subject')}
-                helper={t('support.form.subjectHelper')}
-                error={form.formState.errors.subject?.message}
-              >
+              <FormField label={t('support.form.subject')} error={form.formState.errors.subject?.message}>
                 <Input placeholder={t('support.form.subjectPlaceholder')} {...form.register('subject')} error={form.formState.errors.subject?.message} />
               </FormField>
             </div>
-            <FormField
-              label={t('support.form.type')}
-              helper={t('support.form.typeHelper')}
-              error={form.formState.errors.type?.message}
-            >
+            <FormField label={t('support.form.type')} error={form.formState.errors.type?.message}>
               <Select {...form.register('type')} error={form.formState.errors.type?.message}>
                 <option value="business">{t('common.status.business')}</option>
                 <option value="billing">{t('common.status.billing')}</option>
@@ -131,11 +123,7 @@ export function NewTicketPage() {
                 <option value="general">{t('common.status.general')}</option>
               </Select>
             </FormField>
-            <FormField
-              label={t('support.form.priority')}
-              helper={t('support.form.priorityHelper')}
-              error={form.formState.errors.priority?.message}
-            >
+            <FormField label={t('support.form.priority')} error={form.formState.errors.priority?.message}>
               <Select {...form.register('priority')} error={form.formState.errors.priority?.message}>
                 <option value="low">{t('common.status.low')}</option>
                 <option value="medium">{t('common.status.medium')}</option>
@@ -143,11 +131,7 @@ export function NewTicketPage() {
               </Select>
             </FormField>
             <div className="lg:col-span-2">
-              <FormField
-                label={t('support.form.details')}
-                helper={t('support.form.descriptionHelper')}
-                error={form.formState.errors.description?.message}
-              >
+              <FormField label={t('support.form.details')} error={form.formState.errors.description?.message}>
                 <Textarea placeholder={t('support.form.descriptionPlaceholder')} {...form.register('description')} error={form.formState.errors.description?.message} />
               </FormField>
             </div>
@@ -194,11 +178,21 @@ export function TicketDetailPage() {
 
   if (!ticketId) return <Navigate to="/support" replace />
   if (ticket.isLoading || messages.isLoading) return <PageSkeleton cards={2} rows={4} />
-  if (!ticket.data) return <Navigate to="/support" replace />
+  if (!ticket.data) {
+    return (
+      <AppStatusPage
+        code={t('common.notFound.code')}
+        title={t('common.notFound.title')}
+        description={t('common.notFound.description')}
+        primaryAction={{ label: t('common.buttons.goToSupport'), to: '/support' }}
+        fullscreen={false}
+      />
+    )
+  }
 
   return (
     <div className="space-y-6">
-      <PageHeader eyebrow={t('support.header.eyebrow')} title={ticket.data.subject} description={t('support.header.detailDescription')} />
+      <PageHeader eyebrow={t('support.header.eyebrow')} title={ticket.data.subject} />
       <Card>
         <CardHeader>
           <div className="flex flex-wrap items-center gap-3">
@@ -212,7 +206,6 @@ export function TicketDetailPage() {
       <Card>
         <CardHeader>
           <CardTitle>{t('support.ticket.conversationTitle')}</CardTitle>
-          <CardDescription>{t('support.ticket.conversationDescription')}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           {messages.data && messages.data.length > 0 ? messages.data.map((message) => (
@@ -225,11 +218,7 @@ export function TicketDetailPage() {
             className="space-y-4"
             onSubmit={form.handleSubmit((values) => mutation.mutate(values))}
           >
-            <FormField
-              label={t('support.ticket.replySubmit')}
-              helper={t('support.ticket.replyHelper')}
-              error={form.formState.errors.message?.message}
-            >
+            <FormField label={t('support.ticket.replySubmit')} error={form.formState.errors.message?.message}>
               <Textarea placeholder={t('support.ticket.replyPlaceholder')} {...form.register('message')} error={form.formState.errors.message?.message} />
             </FormField>
             <Button type="submit" loading={mutation.isPending} loadingText={t('support.ticket.replying')}>

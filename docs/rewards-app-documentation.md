@@ -340,8 +340,7 @@ CREATE TABLE public.businesses (
   postal_code                 text,
   region                      text,
   country                     text DEFAULT 'GR',
-  latitude                    numeric(10, 7),
-  longitude                   numeric(10, 7),
+  google_business_url         text,
   phone                       text,
   email                       text,
   website                     text,
@@ -2020,8 +2019,7 @@ SELECT
   b.cover_image_url,
   b.city,
   b.region,
-  b.latitude,
-  b.longitude,
+  b.google_business_url,
   bc.name AS category_name,
   bc.slug AS category_slug,
   bc.icon AS category_icon,
@@ -3017,7 +3015,7 @@ function PaidGuard({
 | `/onboarding`                   | Yes           | `OnboardingLayout`        | Multi-step business setup       |
 | `/onboarding/business-info`     | Yes           | `BusinessInfoStep`        | Name + description              |
 | `/onboarding/category`          | Yes           | `CategoryStep`            | Select business category        |
-| `/onboarding/location`          | Yes           | `LocationStep`            | Address + coordinates           |
+| `/onboarding/location`          | Yes           | `LocationStep`            | Address + Google Business URL   |
 | `/onboarding/contact`           | Yes           | `ContactStep`             | Phone, email, website, socials  |
 | `/onboarding/media`             | Yes           | `MediaStep`               | Upload profile + cover images   |
 | `/onboarding/review`            | Yes           | `ReviewStep`              | Review all info                 |
@@ -3071,7 +3069,7 @@ Step 1: Business Info        Step 2: Category          Step 3: Location
 │                  │        │ ☐ Beauty         │      │ City             │
 │ [Continue]       │        │ ☐ Clothing       │      │ Postal Code      │
 └──────────────────┘        │ ☐ Health         │      │ Region           │
-                            │ ☐ Entertainment  │      │ [Pin on Map]     │
+                            │ ☐ Entertainment  │      │ Google Business  │
                             │ ☐ Retail         │      │ [Continue]       │
                             │ ☐ Services       │      └─────────┬────────┘
                             │ ☐ Other          │                │
@@ -3103,7 +3101,7 @@ Step 7: Payment
 | ----------------- | ----------------------------------------------------------------------------------------------------------------------------- |
 | 1 — Business Info | `INSERT businesses (owner_id, name, slug, description)` + `INSERT business_staff (business_id, user_id, staff_role: 'owner')` |
 | 2 — Category      | `UPDATE businesses SET category_id`                                                                                           |
-| 3 — Location      | `UPDATE businesses SET address_*, latitude, longitude`                                                                        |
+| 3 — Location      | `UPDATE businesses SET address_*, google_business_url`                                                                      |
 | 4 — Contact       | `UPDATE businesses SET phone, email, website, social_*`                                                                       |
 | 5 — Media         | Upload to `business-media/{business_id}/` → `UPDATE businesses SET profile_image_url, cover_image_url`                        |
 | 6 — Review        | No DB changes, display summary                                                                                                |
@@ -3749,8 +3747,7 @@ export interface Business {
 	postal_code: string | null;
 	region: string | null;
 	country: string | null;
-	latitude: number | null;
-	longitude: number | null;
+	google_business_url: string | null;
 	phone: string | null;
 	email: string | null;
 	website: string | null;

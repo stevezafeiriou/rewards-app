@@ -8,6 +8,7 @@ export type Transaction = Database['public']['Tables']['transactions']['Row']
 export type SupportTicket = Database['public']['Tables']['support_tickets']['Row']
 export type SupportTicketMessage = Database['public']['Tables']['support_ticket_messages']['Row']
 export type SubscriptionPlan = Database['public']['Tables']['subscription_plans']['Row']
+export type Notification = Database['public']['Tables']['notifications']['Row']
 
 export type SubscriptionStatus = Database['public']['Enums']['subscription_status']
 export type OfferType = Database['public']['Enums']['offer_type']
@@ -56,8 +57,7 @@ export interface OnboardingDraft {
   postal_code?: string
   region?: string
   country?: string
-  latitude?: number | null
-  longitude?: number | null
+  google_business_url?: string | null
   phone?: string
   email?: string
   website?: string
@@ -95,4 +95,23 @@ export type BusinessOperatingHours = Record<
 export interface ApiError {
   message: string
   details?: Json
+}
+
+export interface SearchOfferResult {
+  id: string
+  title: string
+  status: Offer['status']
+}
+
+export interface SearchTicketResult {
+  id: string
+  subject: string
+  status: SupportTicket['status']
+  updated_at: string
+}
+
+export interface GlobalSearchResults {
+  member: MemberLookupResult | null
+  offers: SearchOfferResult[]
+  tickets: SearchTicketResult[]
 }

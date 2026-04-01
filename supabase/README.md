@@ -26,7 +26,7 @@ Local auth defaults in [config.toml](/Users/zafeirious/Desktop/rewards-app/supab
 - End-user app callback: `http://127.0.0.1:3000/auth/callback`
 - Business app callback: `http://127.0.0.1:3001/auth/callback`
 - Admin app callback: `http://127.0.0.1:3002/auth/callback`
-- Email confirmations: enabled
+- Email confirmations: disabled for local development
 - Minimum password length: `8`
 
 Production references from the product spec remain:

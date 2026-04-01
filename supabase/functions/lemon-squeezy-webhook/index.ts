@@ -152,6 +152,78 @@ async function updateBusinessSubscription(
   }
 }
 
+async function createNotificationIfEnabled(
+  supabase: ReturnType<typeof getServiceClient>,
+  userId: string,
+  category: "billing" | "support" | "product",
+  title: string,
+  body: string,
+  metadata: Record<string, unknown> = {},
+) {
+  const { data: prefs, error: prefsError } = await supabase
+    .from("user_notification_preferences")
+    .select("in_app_support_updates,in_app_billing_updates,in_app_product_updates")
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (prefsError) {
+    throw new Error(prefsError.message);
+  }
+
+  const enabled =
+    category === "support"
+      ? (prefs?.in_app_support_updates ?? true)
+      : category === "billing"
+        ? (prefs?.in_app_billing_updates ?? true)
+        : (prefs?.in_app_product_updates ?? true);
+
+  if (!enabled) return;
+
+  const { error } = await supabase.from("notifications").insert({
+    user_id: userId,
+    title,
+    body,
+    type: "system",
+    metadata: {
+      ...metadata,
+      notification_category: category,
+    },
+  });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+}
+
+async function notifyBusinessOwnerBilling(
+  supabase: ReturnType<typeof getServiceClient>,
+  businessId: string,
+  title: string,
+  body: string,
+  metadata: Record<string, unknown> = {},
+) {
+  const { data: business, error } = await supabase
+    .from("businesses")
+    .select("owner_id")
+    .eq("id", businessId)
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  if (!business?.owner_id) return;
+
+  await createNotificationIfEnabled(
+    supabase,
+    business.owner_id,
+    "billing",
+    title,
+    body,
+    metadata,
+  );
+}
+
 Deno.serve(async (req) => {
   const preflight = handleOptions(req);
   if (preflight) {
@@ -219,6 +291,13 @@ Deno.serve(async (req) => {
             subscriptionId,
             endsAt,
           );
+          await notifyBusinessOwnerBilling(
+            supabase,
+            businessId,
+            "Business subscription activated",
+            "Your business subscription is now active.",
+            { business_id: businessId, status: "active" },
+          );
         }
         break;
       }
@@ -277,6 +356,14 @@ Deno.serve(async (req) => {
             if (error) {
               throw new Error(error.message);
             }
+
+            await notifyBusinessOwnerBilling(
+              supabase,
+              business.id,
+              "Business subscription updated",
+              `Your business subscription status is now ${status}.`,
+              { business_id: business.id, status },
+            );
           }
         }
         break;
@@ -309,6 +396,22 @@ Deno.serve(async (req) => {
         if (businessError) {
           throw new Error(businessError.message);
         }
+
+        const { data: business } = await supabase
+          .from("businesses")
+          .select("id")
+          .eq("lemon_squeezy_subscription_id", subscriptionId)
+          .maybeSingle();
+
+        if (business?.id) {
+          await notifyBusinessOwnerBilling(
+            supabase,
+            business.id,
+            "Payment received",
+            "Your business subscription payment was received successfully.",
+            { business_id: business.id, status: "active" },
+          );
+        }
         break;
       }
 
@@ -331,6 +434,22 @@ Deno.serve(async (req) => {
 
         if (businessError) {
           throw new Error(businessError.message);
+        }
+
+        const { data: business } = await supabase
+          .from("businesses")
+          .select("id")
+          .eq("lemon_squeezy_subscription_id", subscriptionId)
+          .maybeSingle();
+
+        if (business?.id) {
+          await notifyBusinessOwnerBilling(
+            supabase,
+            business.id,
+            "Payment failed",
+            "Your latest business subscription payment failed and needs attention.",
+            { business_id: business.id, status: "past_due" },
+          );
         }
         break;
       }

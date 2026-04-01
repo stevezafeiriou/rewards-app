@@ -3,12 +3,13 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useQueryClient } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
 import { Link, Navigate, useNavigate, useParams } from 'react-router-dom'
-import { HiOutlineBanknotes, HiOutlineClock, HiOutlineMagnifyingGlass, HiOutlineQrCode, HiOutlineUserCircle } from 'react-icons/hi2'
+import { HiOutlineArrowRight, HiOutlineUserCircle } from 'react-icons/hi2'
 import { PageSkeleton } from '@/components/layout/page-skeleton'
 import { PageHeader } from '@/components/layout/page-header'
+import { BarcodeScanner } from '@/components/ui/barcode-scanner'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { EmptyState } from '@/components/ui/empty-state'
 import { FormField } from '@/components/ui/form-field'
 import { Input } from '@/components/ui/input'
@@ -79,19 +80,11 @@ export function CustomersPage() {
       to: '/customers/identify',
       title: t('customers.cards.identifyTitle'),
       description: t('customers.cards.identifyDescription'),
-      icon: HiOutlineMagnifyingGlass,
-    },
-    {
-      to: '/customers/record-transaction',
-      title: t('customers.cards.recordTitle'),
-      description: t('customers.cards.recordDescription'),
-      icon: HiOutlineBanknotes,
     },
     {
       to: '/customers/history',
       title: t('customers.cards.historyTitle'),
       description: t('customers.cards.historyDescription'),
-      icon: HiOutlineClock,
     },
   ]
 
@@ -100,15 +93,10 @@ export function CustomersPage() {
       <PageHeader eyebrow={t('customers.header.eyebrow')} title={t('customers.header.title')} description={t('customers.header.description')} />
       <div className="grid gap-4 md:grid-cols-3">
         {cards.map((card) => {
-          const Icon = card.icon
-
           return (
             <Link key={card.to} to={card.to} className="group block h-full">
               <Card className="h-full transition-transform duration-200 group-hover:-translate-y-0.5 group-hover:shadow-[0_16px_38px_rgba(15,23,42,0.08)]">
-                <CardHeader className="space-y-4">
-                  <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-primary-weak text-primary transition-transform duration-200 group-hover:scale-[1.03]">
-                    <Icon className="h-5 w-5" />
-                  </div>
+                <CardHeader>
                   <CardTitle>{card.title}</CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -133,6 +121,15 @@ export function IdentifyCustomerPage() {
     defaultValues: { publicId: '' },
   })
 
+  function handleLookup(publicId: string) {
+    lookup.mutate(publicId, {
+      onSuccess: (data) => {
+        writeSessionValue(CURRENT_MEMBER_KEY, data)
+        navigate(`/customers/identify/${publicId}`)
+      },
+    })
+  }
+
   return (
     <div className="space-y-6">
       <PageHeader eyebrow={t('customers.header.eyebrow')} title={t('customers.identify.title')} description={t('customers.identify.description')} />
@@ -155,47 +152,70 @@ export function IdentifyCustomerPage() {
           }}
         />
       ) : null}
-      <div className="grid gap-6 xl:grid-cols-[1fr_0.8fr]">
-        <Card>
+      {lookup.isError ? (
+        <Card className="border-danger-border bg-danger-bg/40 shadow-none">
+          <CardContent className="p-4 sm:p-5">
+            <p className="text-sm font-medium text-danger-text">
+              {lookup.error instanceof Error ? lookup.error.message : t('customers.identify.lookupError')}
+            </p>
+          </CardContent>
+        </Card>
+      ) : null}
+      <div className="grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
+        <Card className="overflow-hidden">
           <CardHeader>
-            <CardTitle>{t('customers.identify.manualTitle')}</CardTitle>
-            <CardDescription>{t('customers.identify.manualDescription')}</CardDescription>
+            <p className="text-xs font-bold uppercase tracking-[0.18em] text-primary">{t('customers.identify.scannerEyebrow')}</p>
+            <CardTitle>{t('customers.identify.scannerCardTitle')}</CardTitle>
           </CardHeader>
-          <CardContent>
-            <form
-              className="space-y-4"
-              onSubmit={form.handleSubmit((values) =>
-                lookup.mutate(values.publicId, {
-                  onSuccess: (data) => {
-                    writeSessionValue(CURRENT_MEMBER_KEY, data)
-                    navigate(`/customers/identify/${values.publicId}`)
-                  },
-                }),
-              )}
-            >
-              <FormField label={t('customers.identify.manualTitle')} helper={t('customers.identify.helper')} error={form.formState.errors.publicId?.message}>
-                <Input placeholder={t('customers.identify.placeholder')} maxLength={9} {...form.register('publicId')} error={form.formState.errors.publicId?.message} />
-              </FormField>
-              <Button type="submit" loading={lookup.isPending} loadingText={t('customers.identify.submitting')}>
-                {t('customers.identify.submit')}
-              </Button>
-            </form>
+          <CardContent className="space-y-5">
+            <div className="rounded-[1.5rem] bg-surface-2 px-4 py-4">
+              <div className="grid gap-3 sm:grid-cols-3">
+                {[1, 2, 3].map((step) => (
+                  <div key={step} className="space-y-1">
+                    <p className="text-xs font-bold uppercase tracking-[0.16em] text-primary">{t(`customers.identify.steps.${step}.label`)}</p>
+                    <p className="text-sm leading-6 text-muted-foreground">{t(`customers.identify.steps.${step}.description`)}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <BarcodeScanner
+              disabled={lookup.isPending}
+              onDetected={handleLookup}
+              title={t('customers.identify.scannerTitle')}
+              description={t('customers.identify.scannerDescription')}
+              helper={t('customers.identify.scannerHelper')}
+              idleLabel={t('customers.identify.scannerIdle')}
+              startLabel={t('customers.identify.startScanner')}
+              startingLabel={t('customers.identify.startingScanner')}
+              stopLabel={t('customers.identify.stopScanner')}
+              activeLabel={t('customers.identify.scannerActive')}
+              unsupportedLabel={t('customers.identify.scannerUnsupported')}
+              errorPrefix={t('customers.identify.scannerErrorPrefix')}
+            />
           </CardContent>
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle>{t('customers.identify.scannerTitle')}</CardTitle>
-            <CardDescription>{t('customers.identify.scannerDescription')}</CardDescription>
+            <p className="text-xs font-bold uppercase tracking-[0.18em] text-primary">{t('customers.identify.manualEyebrow')}</p>
+            <CardTitle>{t('customers.identify.manualTitle')}</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex h-48 items-center justify-center rounded-[1.6rem] border border-dashed border-border bg-surface-2">
-              <div className="space-y-3 text-center">
-                <div className="mx-auto inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-primary-weak text-primary">
-                  <HiOutlineQrCode className="h-7 w-7" />
-                </div>
-                <p className="text-sm text-muted-foreground">{t('customers.identify.scannerPlaceholder')}</p>
-              </div>
-            </div>
+          <CardContent className="space-y-5">
+            <form
+              className="space-y-4"
+              onSubmit={form.handleSubmit((values) => handleLookup(values.publicId))}
+            >
+              <FormField label={t('customers.identify.manualTitle')} error={form.formState.errors.publicId?.message}>
+                <Input placeholder={t('customers.identify.placeholder')} maxLength={9} {...form.register('publicId')} error={form.formState.errors.publicId?.message} />
+              </FormField>
+              <Button
+                type="submit"
+                loading={lookup.isPending}
+                loadingText={t('customers.identify.submitting')}
+                rightIcon={<HiOutlineArrowRight className="h-4 w-4" />}
+              >
+                {t('customers.identify.submit')}
+              </Button>
+            </form>
           </CardContent>
         </Card>
       </div>
@@ -305,7 +325,6 @@ export function RecordTransactionPage() {
         <Card>
           <CardHeader>
             <CardTitle>{t('customers.transaction.currentMemberTitle')}</CardTitle>
-            <CardDescription>{t('customers.transaction.currentMemberDescription')}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             <p className="text-xl font-bold text-foreground">{member.first_name} {member.last_name}</p>
@@ -341,7 +360,6 @@ export function RecordTransactionPage() {
         <Card>
           <CardHeader>
             <CardTitle>{t('customers.transaction.detailsTitle')}</CardTitle>
-            <CardDescription>{t('customers.transaction.detailsDescription')}</CardDescription>
           </CardHeader>
           <CardContent>
             <form
@@ -365,10 +383,10 @@ export function RecordTransactionPage() {
                 ),
               )}
             >
-              <FormField label={t('common.fields.amount')} helper={t('customers.transaction.amountHelper')} error={form.formState.errors.amount_spent?.message}>
+              <FormField label={t('common.fields.amount')} error={form.formState.errors.amount_spent?.message}>
                 <Input type="number" step="0.01" placeholder={t('customers.transaction.amountPlaceholder')} {...form.register('amount_spent')} error={form.formState.errors.amount_spent?.message} />
               </FormField>
-              <FormField label={t('common.fields.category')} helper={t('customers.transaction.offerHelper')} error={form.formState.errors.offer_id?.message}>
+              <FormField label={t('common.fields.category')} error={form.formState.errors.offer_id?.message}>
                 <Select {...form.register('offer_id')} error={form.formState.errors.offer_id?.message}>
                   <option value="">{t('customers.transaction.noOffer')}</option>
                   {offers.data?.filter((offer) => offer.status === 'active').map((offer) => (
@@ -376,7 +394,7 @@ export function RecordTransactionPage() {
                   ))}
                 </Select>
               </FormField>
-              <FormField label={t('common.fields.notes')} helper={t('customers.transaction.notesHelper')} error={form.formState.errors.notes?.message}>
+              <FormField label={t('common.fields.notes')} error={form.formState.errors.notes?.message}>
                 <Textarea placeholder={t('customers.transaction.notesPlaceholder')} {...form.register('notes')} error={form.formState.errors.notes?.message} />
               </FormField>
               <Button

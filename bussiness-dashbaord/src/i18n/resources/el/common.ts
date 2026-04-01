@@ -14,6 +14,10 @@ const common = {
     open: 'Άνοιγμα',
     view: 'Προβολή',
     upload: 'Μεταφόρτωση',
+    tryAgain: 'Δοκιμή ξανά',
+    goToDashboard: 'Μετάβαση στον πίνακα',
+    goToOffers: 'Μετάβαση στις προσφορές',
+    goToSupport: 'Μετάβαση στην υποστήριξη',
   },
   states: {
     loading: 'Φόρτωση...',
@@ -90,12 +94,25 @@ const common = {
     title: 'Η διαδρομή δεν βρέθηκε',
     description: 'Η ζητούμενη διαδρομή του πίνακα επιχειρήσεων δεν υπάρχει.',
   },
+  system: {
+    forbidden: {
+      code: '403',
+      title: 'Η πρόσβαση δεν επιτρέπεται',
+      description: 'Ο τρέχων λογαριασμός δεν έχει δικαίωμα να ανοίξει αυτή την περιοχή του πίνακα επιχειρήσεων.',
+    },
+    error: {
+      code: '500',
+      title: 'Κάτι πήγε στραβά',
+      description: 'Ο πίνακας συνάντησε ένα απρόσμενο πρόβλημα. Ανανέωση της σελίδας ή δοκιμάστε ξανά σε λίγο.',
+    },
+  },
   fields: {
     name: 'Όνομα',
     description: 'Περιγραφή',
     email: 'Email',
     phone: 'Τηλέφωνο',
     website: 'Ιστότοπος',
+    googleBusinessUrl: 'Σύνδεσμος Google Business',
     city: 'Πόλη',
     region: 'Περιοχή',
     country: 'Χώρα',

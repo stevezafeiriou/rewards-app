@@ -3,6 +3,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useForm, useWatch } from 'react-hook-form'
 import { Link, Navigate, useNavigate, useParams } from 'react-router-dom'
+import { AppStatusPage } from '@/components/layout/app-status-page'
 import { PageSkeleton } from '@/components/layout/page-skeleton'
 import { PageHeader } from '@/components/layout/page-header'
 import { Badge } from '@/components/ui/badge'
@@ -150,12 +151,12 @@ function OfferForm({
           onSubmit={form.handleSubmit((values) => mutation.mutate(values))}
         >
           <div className="lg:col-span-2">
-            <FormField label={commonT('fields.name')} helper={offersT('form.titleHelper')} error={form.formState.errors.title?.message} required>
+            <FormField label={commonT('fields.name')} error={form.formState.errors.title?.message} required>
               <Input placeholder={offersT('form.titlePlaceholder')} {...form.register('title')} error={form.formState.errors.title?.message} />
             </FormField>
           </div>
           <div className="lg:col-span-2">
-            <FormField label={commonT('fields.description')} helper={offersT('form.descriptionHelper')} error={form.formState.errors.description?.message} required>
+            <FormField label={commonT('fields.description')} error={form.formState.errors.description?.message} required>
               <Textarea placeholder={offersT('form.descriptionPlaceholder')} {...form.register('description')} error={form.formState.errors.description?.message} />
             </FormField>
           </div>
@@ -176,16 +177,16 @@ function OfferForm({
               error={form.formState.errors.discount_value?.message}
             />
           </FormField>
-          <FormField label={commonT('fields.starts')} helper={offersT('form.startsAtHelper')} error={form.formState.errors.starts_at?.message} required>
+          <FormField label={commonT('fields.starts')} error={form.formState.errors.starts_at?.message} required>
             <Input type="datetime-local" {...form.register('starts_at')} error={form.formState.errors.starts_at?.message} />
           </FormField>
-          <FormField label={commonT('fields.expires')} helper={offersT('form.expiresAtHelper')} error={form.formState.errors.expires_at?.message}>
+          <FormField label={commonT('fields.expires')} error={form.formState.errors.expires_at?.message}>
             <Input type="datetime-local" {...form.register('expires_at')} error={form.formState.errors.expires_at?.message} />
           </FormField>
-          <FormField label={commonT('fields.redemptions')} helper={offersT('form.maxRedemptionsHelper')} error={form.formState.errors.max_redemptions?.message}>
+          <FormField label={commonT('fields.redemptions')} error={form.formState.errors.max_redemptions?.message}>
             <Input type="number" placeholder={offersT('form.maxRedemptionsPlaceholder')} {...form.register('max_redemptions')} error={form.formState.errors.max_redemptions?.message} />
           </FormField>
-          <FormField label={commonT('fields.minPurchase')} helper={offersT('form.minPurchaseHelper')} error={form.formState.errors.min_purchase_amount?.message}>
+          <FormField label={commonT('fields.minPurchase')} error={form.formState.errors.min_purchase_amount?.message}>
             <Input type="number" step="0.01" placeholder={offersT('form.minPurchasePlaceholder')} {...form.register('min_purchase_amount')} error={form.formState.errors.min_purchase_amount?.message} />
           </FormField>
           <div className="lg:col-span-2">
@@ -206,7 +207,7 @@ function OfferForm({
               </label>
               <p className="text-xs leading-5 text-muted-foreground">{offersT('form.requiresPaidMembershipHelper')}</p>
             </div>
-            <FormField label={commonT('fields.status')} helper={offersT('form.statusHelper')} error={form.formState.errors.status?.message} required>
+            <FormField label={commonT('fields.status')} error={form.formState.errors.status?.message} required>
               <Select {...form.register('status')} error={form.formState.errors.status?.message}>
                 <option value="draft">{commonT('status.draft')}</option>
                 <option value="active">{commonT('status.active')}</option>
@@ -252,7 +253,6 @@ export function OffersListPage() {
       <PageHeader
         eyebrow={offersT('header.eyebrow')}
         title={offersT('header.title')}
-        description={offersT('header.description')}
         actions={<Link to="/offers/create"><Button>{offersT('header.create')}</Button></Link>}
       />
 
@@ -309,7 +309,17 @@ export function OfferDetailPage() {
 
   if (!offerId) return <Navigate to="/offers" replace />
   if (offer.isLoading) return <PageSkeleton cards={2} rows={4} />
-  if (!offer.data) return <Navigate to="/offers" replace />
+  if (!offer.data) {
+    return (
+      <AppStatusPage
+        code={commonT('common.notFound.code')}
+        title={commonT('common.notFound.title')}
+        description={commonT('common.notFound.description')}
+        primaryAction={{ label: commonT('common.buttons.goToOffers'), to: '/offers' }}
+        fullscreen={false}
+      />
+    )
+  }
 
   const item = offer.data
 
@@ -318,7 +328,6 @@ export function OfferDetailPage() {
       <PageHeader
         eyebrow={offersT('header.eyebrow')}
         title={item.title}
-        description={offersT('header.detailDescription')}
         actions={<Link to={`/offers/${item.id}/edit`}><Button>{offersT('list.edit')}</Button></Link>}
       />
       <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
@@ -341,7 +350,6 @@ export function OfferDetailPage() {
         <Card>
           <CardHeader>
             <CardTitle>{offersT('detail.metadataTitle')}</CardTitle>
-            <CardDescription>{offersT('detail.metadataDescription')}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3 text-sm text-muted-foreground">
             <p><span className="font-semibold text-foreground">{commonT('fields.type')}:</span> {commonT(`status.${item.offer_type}`)}</p>
@@ -364,10 +372,21 @@ export function EditOfferPage() {
 
   if (!offerId) return <Navigate to="/offers" replace />
   if (offer.isLoading) return <PageSkeleton cards={1} rows={5} />
+  if (!offer.data) {
+    return (
+      <AppStatusPage
+        code={t('common.notFound.code')}
+        title={t('common.notFound.title')}
+        description={t('common.notFound.description')}
+        primaryAction={{ label: t('common.buttons.goToOffers'), to: '/offers' }}
+        fullscreen={false}
+      />
+    )
+  }
 
   return (
     <div className="space-y-6">
-      <PageHeader eyebrow={t('header.eyebrow')} title={t('header.editTitle')} description={t('header.editDescription')} />
+      <PageHeader eyebrow={t('header.eyebrow')} title={t('header.editTitle')} />
       <OfferForm mode="edit" offer={offer.data} />
     </div>
   )
