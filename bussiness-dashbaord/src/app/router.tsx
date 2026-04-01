@@ -13,6 +13,8 @@ const RegisterPage = lazyRoute(() => import('@/features/auth/pages'), 'RegisterP
 const ForgotPasswordPage = lazyRoute(() => import('@/features/auth/pages'), 'ForgotPasswordPage')
 const ResetPasswordPage = lazyRoute(() => import('@/features/auth/pages'), 'ResetPasswordPage')
 const AuthCallbackPage = lazyRoute(() => import('@/features/auth/pages'), 'AuthCallbackPage')
+const TermsOfServicePage = lazyRoute(() => import('@/features/auth/pages'), 'TermsOfServicePage')
+const PrivacyPolicyPage = lazyRoute(() => import('@/features/auth/pages'), 'PrivacyPolicyPage')
 
 const BusinessInfoStep = lazyRoute(() => import('@/features/onboarding/pages'), 'BusinessInfoStep')
 const CategoryStep = lazyRoute(() => import('@/features/onboarding/pages'), 'CategoryStep')
@@ -80,6 +82,8 @@ export function AppRouter() {
       <Suspense fallback={<RouteSkeleton />}>
         <Routes>
           <Route path="/" element={<LandingPage />} />
+          <Route path="/terms" element={<TermsOfServicePage />} />
+          <Route path="/privacy" element={<PrivacyPolicyPage />} />
           <Route path="/auth/login" element={<LoginPage />} />
           <Route path="/auth/register" element={<RegisterPage />} />
           <Route path="/auth/forgot-password" element={<ForgotPasswordPage />} />

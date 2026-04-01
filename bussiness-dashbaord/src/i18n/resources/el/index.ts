@@ -2,6 +2,7 @@ import auth from './auth'
 import common from './common'
 import customers from './customers'
 import dashboard from './dashboard'
+import legal from './legal'
 import navigation from './navigation'
 import offers from './offers'
 import onboarding from './onboarding'
@@ -16,6 +17,7 @@ const el = {
   auth,
   onboarding,
   dashboard,
+  legal,
   offers,
   customers,
   profile,

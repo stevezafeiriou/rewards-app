@@ -4,7 +4,9 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
 import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { HiOutlineArrowPath } from 'react-icons/hi2'
+import emsekLogo from '@/assets/emsek.svg'
 import googleLogo from '@/assets/google.png'
+import { AppFooter } from '@/components/layout/app-footer'
 import { AuthShell } from '@/components/layout/auth-shell'
 import { Button } from '@/components/ui/button'
 import { FormField } from '@/components/ui/form-field'
@@ -37,9 +39,63 @@ function getErrorMessage(error: unknown, fallback: string) {
   return error instanceof Error ? error.message : fallback
 }
 
+function LegalArticlePage({
+  title,
+  intro,
+  updated,
+  sections,
+  bottomLink,
+}: {
+  title: string
+  intro: string
+  updated: string
+  sections: Array<{
+    title: string
+    body: string
+  }>
+  bottomLink: {
+    label: string
+    to: string
+  }
+}) {
+  return (
+    <div className="mx-auto flex min-h-screen w-full max-w-5xl flex-col px-4 py-5 sm:px-6 lg:px-8">
+      <main className="flex flex-1 items-start py-8 sm:py-12">
+        <article className="mx-auto w-full max-w-3xl space-y-10">
+          <header className="space-y-3">
+            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-muted-foreground">
+              Legal
+            </p>
+            <h1 className="text-[2rem] font-extrabold leading-tight text-foreground sm:text-[2.4rem]">{title}</h1>
+            <p className="max-w-2xl text-sm leading-6 text-muted-foreground">{intro}</p>
+            <p className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground/80">{updated}</p>
+          </header>
+
+          <div className="space-y-8">
+            {sections.map((section) => (
+              <section key={section.title} className="space-y-2 border-t border-border/70 pt-6">
+                <h2 className="text-lg font-bold text-foreground">{section.title}</h2>
+                <p className="max-w-2xl text-sm leading-6 text-muted-foreground">{section.body}</p>
+              </section>
+            ))}
+          </div>
+
+          <div className="pt-2">
+            <Link className="text-sm font-semibold text-primary underline underline-offset-4" to={bottomLink.to}>
+              {bottomLink.label}
+            </Link>
+          </div>
+        </article>
+      </main>
+
+      <AppFooter />
+    </div>
+  )
+}
+
 export function LandingPage() {
   const { user } = useAuth()
-  const { t } = useAppTranslation(['auth', 'common'])
+  const { t, locale } = useAppTranslation(['auth', 'common'])
 
   if (user) {
     return <Navigate to="/dashboard" replace />
@@ -52,11 +108,104 @@ export function LandingPage() {
       asideTitle={t('auth.landing.asideTitle')}
       asideDescription={t('auth.landing.asideDescription')}
     >
-      <div className="grid gap-3 sm:grid-cols-2">
-        <Link to="/auth/register"><Button full>{t('auth.landing.register')}</Button></Link>
-        <Link to="/auth/login"><Button full variant="outline">{t('auth.landing.login')}</Button></Link>
+      <div className="flex min-h-[320px] flex-col">
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Link to="/auth/register"><Button full>{t('auth.landing.register')}</Button></Link>
+          <Link to="/auth/login"><Button full variant="outline">{t('auth.landing.login')}</Button></Link>
+        </div>
+        <div className="mt-auto border-t border-border/80 pt-5">
+          <div className="flex items-center justify-between gap-4">
+            <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-muted-foreground">
+              Powered by
+            </p>
+            <div className="flex items-center gap-3">
+              <img
+                src={emsekLogo}
+                alt="EMSEK.GR"
+                className="h-10 w-10 object-contain"
+              />
+              <p className="text-justify text-sm font-extrabold uppercase leading-tight tracking-[-0.01em] text-[#2875b1] sm:text-[15px]">
+                {locale === 'el' ? (
+                  <>
+                    ΕΜΠΟΡΙΚΟΣ ΣΥΛΛΟΓΟΣ
+                    <br />
+                    ΕΥΟΣΜΟΥ ΚΟΡΔΕΛΙΟΥ
+                  </>
+                ) : (
+                  <>
+                    EMPORIKOS SILOGOS
+                    <br />
+                    EVOSMOU KORDELIOU
+                  </>
+                )}
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
     </AuthShell>
+  )
+}
+
+export function TermsOfServicePage() {
+  const { t } = useAppTranslation('legal')
+
+  return (
+    <LegalArticlePage
+      title={t('legal.terms.title')}
+      intro={t('legal.terms.intro')}
+      updated={t('legal.terms.updated', { date: 'April 1, 2026' })}
+      sections={[
+        {
+          title: t('legal.terms.sections.scopeTitle'),
+          body: t('legal.terms.sections.scopeBody'),
+        },
+        {
+          title: t('legal.terms.sections.useTitle'),
+          body: t('legal.terms.sections.useBody'),
+        },
+        {
+          title: t('legal.terms.sections.liabilityTitle'),
+          body: t('legal.terms.sections.liabilityBody'),
+        },
+        {
+          title: t('legal.terms.sections.contactTitle'),
+          body: t('legal.terms.sections.contactBody'),
+        },
+      ]}
+      bottomLink={{ label: t('legal.terms.sections.privacyLink'), to: '/privacy' }}
+    />
+  )
+}
+
+export function PrivacyPolicyPage() {
+  const { t } = useAppTranslation('legal')
+
+  return (
+    <LegalArticlePage
+      title={t('legal.privacy.title')}
+      intro={t('legal.privacy.intro')}
+      updated={t('legal.privacy.updated', { date: 'April 1, 2026' })}
+      sections={[
+        {
+          title: t('legal.privacy.sections.dataTitle'),
+          body: t('legal.privacy.sections.dataBody'),
+        },
+        {
+          title: t('legal.privacy.sections.useTitle'),
+          body: t('legal.privacy.sections.useBody'),
+        },
+        {
+          title: t('legal.privacy.sections.sharingTitle'),
+          body: t('legal.privacy.sections.sharingBody'),
+        },
+        {
+          title: t('legal.privacy.sections.contactTitle'),
+          body: t('legal.privacy.sections.contactBody'),
+        },
+      ]}
+      bottomLink={{ label: t('legal.privacy.sections.termsLink'), to: '/terms' }}
+    />
   )
 }
 

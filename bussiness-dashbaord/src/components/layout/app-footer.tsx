@@ -1,8 +1,7 @@
-import { Link } from 'react-router-dom'
 import { LanguageSwitcher } from '@/components/ui/language-switcher'
 import { useAppTranslation } from '@/i18n/use-app-translation'
 
-export function AppFooter() {
+export function AppFooter({ showSupport = false }: { showSupport?: boolean }) {
   const { t } = useAppTranslation('common')
 
   return (
@@ -22,10 +21,12 @@ export function AppFooter() {
       </div>
 
       <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm">
-        <Link className="underline underline-offset-4 transition-colors hover:text-foreground" to="/support">
-          {t('common.footer.support')}
-        </Link>
-        <a className="underline underline-offset-4 transition-colors hover:text-foreground" href="#">
+        {showSupport ? (
+          <a className="underline underline-offset-4 transition-colors hover:text-foreground" href="/support">
+            {t('common.footer.support')}
+          </a>
+        ) : null}
+        <a className="underline underline-offset-4 transition-colors hover:text-foreground" href="/terms">
           {t('common.footer.terms')}
         </a>
         <LanguageSwitcher compact className="self-start sm:self-auto" />
