@@ -14,4 +14,4 @@ dist/
 
 # Supabase local
 # .supabase/
-docs
+.docs/
