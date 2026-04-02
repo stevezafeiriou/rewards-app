@@ -36,6 +36,11 @@ const profile = {
     coverImageHelper: 'Used in larger previews.',
     save: 'Save changes',
     saving: 'Saving...',
+    toast: {
+      loading: 'Saving business profile...',
+      success: 'Business profile saved.',
+      error: 'Could not save business profile.',
+    },
   },
   preview: {
     cityMissing: 'City missing',

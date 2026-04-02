@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase'
 import type {
   BusinessCategory,
   BusinessDashboardStats,
+  BusinessSubscriptionSummary,
   GlobalSearchResults,
   MemberLookupResult,
   Notification,
@@ -122,14 +123,30 @@ export function useSubscriptionPlans() {
       const { data, error } = await supabase
         .from('subscription_plans')
         .select('*')
-        .eq('plan_type', 'business')
+        .eq('audience', 'business')
         .eq('is_active', true)
-        .order('price_monthly_cents', { ascending: true })
+        .order('monthly_price_cents', { ascending: true })
         .order('setup_fee_cents', { ascending: true })
         .order('created_at', { ascending: true })
 
       if (error) throw error
       return data
+    },
+  })
+}
+
+export function useBusinessSubscriptionSummary(businessId?: string) {
+  return useQuery({
+    queryKey: queryKeys.businessSubscriptionSummary(businessId),
+    enabled: !!businessId,
+    staleTime: 30_000,
+    queryFn: async (): Promise<BusinessSubscriptionSummary> => {
+      const { data, error } = await supabase.rpc('get_business_subscription_summary', {
+        p_business_id: businessId!,
+      })
+
+      if (error) throw error
+      return data as BusinessSubscriptionSummary
     },
   })
 }

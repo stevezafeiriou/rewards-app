@@ -10,6 +10,7 @@ export const queryKeys = {
   offers: (businessId?: string) => ['offers', businessId] as const,
   offer: (offerId?: string) => ['offer', offerId] as const,
   transactions: (businessId?: string) => ['transactions', businessId] as const,
+  businessSubscriptionSummary: (businessId?: string) => ['business-subscription-summary', businessId] as const,
   memberLookup: (identifier?: string) => ['member-lookup', identifier] as const,
   tickets: ['support-tickets'] as const,
   ticket: (ticketId?: string) => ['support-ticket', ticketId] as const,

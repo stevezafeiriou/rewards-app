@@ -21,6 +21,11 @@ const support = {
     descriptionPlaceholder: 'Περιγράψτε το θέμα',
     submit: 'Δημιουργία αιτήματος',
     submitting: 'Δημιουργία...',
+    toast: {
+      loading: 'Δημιουργία αιτήματος υποστήριξης...',
+      success: 'Το αίτημα υποστήριξης δημιουργήθηκε.',
+      error: 'Δεν ήταν δυνατή η δημιουργία του αιτήματος.',
+    },
   },
   ticket: {
     conversationTitle: 'Συνομιλία',
@@ -29,6 +34,11 @@ const support = {
     replyPlaceholder: 'Γράψτε το μήνυμά σας',
     replySubmit: 'Αποστολή απάντησης',
     replying: 'Αποστολή...',
+    toast: {
+      loading: 'Αποστολή απάντησης...',
+      success: 'Η απάντηση στάλθηκε.',
+      error: 'Δεν ήταν δυνατή η αποστολή της απάντησης.',
+    },
   },
 } as const
 

@@ -101,6 +101,7 @@ export function AppRouter() {
             <Route path="/onboarding/operations" element={<OperationsStep />} />
             <Route path="/onboarding/review" element={<ReviewStep />} />
             <Route path="/onboarding/payment" element={<PaymentStep />} />
+            <Route path="/payment" element={<PaymentStep />} />
             <Route path="/onboarding/complete" element={<OnboardingCompletePage />} />
 
             <Route element={<AppShell />}>

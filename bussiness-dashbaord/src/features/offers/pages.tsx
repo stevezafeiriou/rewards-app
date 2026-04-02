@@ -21,6 +21,7 @@ import { useAppTranslation } from '@/i18n/use-app-translation'
 import { queryKeys } from '@/lib/query-keys'
 import { createOfferSchema } from '@/lib/schemas'
 import { supabase } from '@/lib/supabase'
+import { getToastErrorMessage, toastPromise } from '@/lib/toast'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import type { Offer, OfferStatus, OfferType } from '@/types/app'
 
@@ -148,7 +149,14 @@ function OfferForm({
       <CardContent>
         <form
           className="grid gap-4 lg:grid-cols-2"
-          onSubmit={form.handleSubmit((values) => mutation.mutate(values))}
+          onSubmit={form.handleSubmit(async (values) => {
+            const isCreate = mode === 'create'
+            await toastPromise(mutation.mutateAsync(values), {
+              loading: offersT(isCreate ? 'form.toast.create.loading' : 'form.toast.edit.loading'),
+              success: offersT(isCreate ? 'form.toast.create.success' : 'form.toast.edit.success'),
+              error: (error: unknown) => getToastErrorMessage(error, offersT(isCreate ? 'form.toast.create.error' : 'form.toast.edit.error')),
+            })
+          })}
         >
           <div className="lg:col-span-2">
             <FormField label={commonT('fields.name')} error={form.formState.errors.title?.message} required>
@@ -302,10 +310,27 @@ export function CreateOfferPage() {
 }
 
 export function OfferDetailPage() {
+  const navigate = useNavigate()
+  const queryClient = useQueryClient()
   const { offerId } = useParams()
   const { t: offersT } = useAppTranslation('offers')
   const { t: commonT, locale } = useAppTranslation('common')
+  const { data: business } = useBusiness()
   const offer = useOffer(offerId)
+
+  const deleteMutation = useMutation({
+    mutationFn: async () => {
+      if (!offerId) throw new Error(commonT('errors.notFound'))
+
+      const { error } = await supabase.from('offers').delete().eq('id', offerId)
+      if (error) throw error
+    },
+    onSuccess: async () => {
+      await invalidateBusinessOperations(queryClient, business?.id)
+      await queryClient.invalidateQueries({ queryKey: queryKeys.offers(business?.id) })
+      navigate('/offers', { replace: true })
+    },
+  })
 
   if (!offerId) return <Navigate to="/offers" replace />
   if (offer.isLoading) return <PageSkeleton cards={2} rows={4} />
@@ -328,36 +353,86 @@ export function OfferDetailPage() {
       <PageHeader
         eyebrow={offersT('header.eyebrow')}
         title={item.title}
-        actions={<Link to={`/offers/${item.id}/edit`}><Button>{offersT('list.edit')}</Button></Link>}
+        actions={
+          <div className="flex flex-wrap items-center gap-3">
+            <Button
+              variant="outline"
+              className="border-danger-border text-danger-text hover:bg-danger-bg"
+              loading={deleteMutation.isPending}
+              loadingText={offersT('detail.deleting')}
+              onClick={async () => {
+                if (!window.confirm(offersT('detail.deleteConfirm'))) return
+                await toastPromise(deleteMutation.mutateAsync(), {
+                  loading: offersT('detail.toast.delete.loading'),
+                  success: offersT('detail.toast.delete.success'),
+                  error: (error: unknown) => getToastErrorMessage(error, offersT('detail.toast.delete.error')),
+                })
+              }}
+            >
+              {offersT('detail.delete')}
+            </Button>
+            <Link to={`/offers/${item.id}/edit`}><Button>{offersT('list.edit')}</Button></Link>
+          </div>
+        }
       />
-      <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
+      <div className="grid gap-5 xl:grid-cols-[minmax(0,1.15fr)_minmax(360px,0.85fr)]">
         <Card className="overflow-hidden">
-          {item.image_url ? <LazyImage className="h-72 w-full object-cover" src={item.image_url} alt={item.title} /> : null}
-          <CardContent className="space-y-4 p-6">
-            <div className="flex items-center gap-3">
+          {item.image_url ? <LazyImage className="h-64 w-full object-cover xl:h-72" src={item.image_url} alt={item.title} /> : null}
+          <CardContent className="space-y-5 p-5 sm:p-6">
+            {deleteMutation.error instanceof Error ? (
+              <p className="text-sm font-medium text-danger-text">{deleteMutation.error.message}</p>
+            ) : null}
+            <div className="flex flex-wrap items-center gap-2">
               <Badge tone={item.status === 'active' ? 'success' : 'neutral'}>{commonT(`status.${item.status}`)}</Badge>
               {item.requires_paid_membership ? <Badge tone="primary">{offersT('detail.paidOnly')}</Badge> : null}
             </div>
-            <p className="text-sm leading-7 text-muted-foreground">{item.description}</p>
+            <div className="space-y-2">
+              <p className="text-sm font-semibold text-foreground">{commonT('fields.description')}</p>
+              <p className="text-sm leading-7 text-muted-foreground">{item.description}</p>
+            </div>
             {item.terms_conditions ? (
-              <div className="rounded-[1.4rem] bg-surface-2 p-4">
+              <div className="rounded-[1.25rem] border border-border bg-surface-2/45 p-4">
                 <p className="text-xs font-bold uppercase tracking-[0.18em] text-muted-foreground">{offersT('detail.terms')}</p>
-                <p className="mt-2 text-sm text-foreground">{item.terms_conditions}</p>
+                <p className="mt-2 text-sm leading-6 text-foreground">{item.terms_conditions}</p>
+              </div>
+            ) : null}
+            {!item.image_url ? (
+              <div className="rounded-[1.25rem] border border-dashed border-border bg-surface-2/35 px-4 py-5 text-sm text-muted-foreground">
+                {offersT('form.imageDisabledPlaceholder')}
               </div>
             ) : null}
           </CardContent>
         </Card>
         <Card>
-          <CardHeader>
+          <CardHeader className="pb-4">
             <CardTitle>{offersT('detail.metadataTitle')}</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3 text-sm text-muted-foreground">
-            <p><span className="font-semibold text-foreground">{commonT('fields.type')}:</span> {commonT(`status.${item.offer_type}`)}</p>
-            <p><span className="font-semibold text-foreground">{commonT('fields.discount')}:</span> {item.discount_value ?? offersT('detail.notAvailable')}</p>
-            <p><span className="font-semibold text-foreground">{commonT('fields.starts')}:</span> {formatDate(item.starts_at, undefined, locale)}</p>
-            <p><span className="font-semibold text-foreground">{commonT('fields.expires')}:</span> {item.expires_at ? formatDate(item.expires_at, undefined, locale) : offersT('detail.noExpiry')}</p>
-            <p><span className="font-semibold text-foreground">{commonT('fields.minPurchase')}:</span> {item.min_purchase_amount ? formatCurrency(item.min_purchase_amount, locale) : offersT('detail.notAvailable')}</p>
-            <p><span className="font-semibold text-foreground">{commonT('fields.redemptions')}:</span> {item.current_redemptions}/{item.max_redemptions ?? '∞'}</p>
+          <CardContent className="pt-0">
+            <div className="overflow-hidden rounded-[1.25rem] border border-border bg-surface-2/45">
+              <div className="grid grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)] text-sm">
+                <div className="border-b border-border px-4 py-3 font-semibold text-foreground">{commonT('fields.type')}</div>
+                <div className="border-b border-border px-4 py-3 text-right text-muted-foreground">{offersT(`types.${item.offer_type}`)}</div>
+
+                <div className="border-b border-border px-4 py-3 font-semibold text-foreground">{commonT('fields.discount')}</div>
+                <div className="border-b border-border px-4 py-3 text-right text-muted-foreground">{item.discount_value ?? offersT('detail.notAvailable')}</div>
+
+                <div className="border-b border-border px-4 py-3 font-semibold text-foreground">{commonT('fields.starts')}</div>
+                <div className="border-b border-border px-4 py-3 text-right text-muted-foreground">{formatDate(item.starts_at, undefined, locale)}</div>
+
+                <div className="border-b border-border px-4 py-3 font-semibold text-foreground">{commonT('fields.expires')}</div>
+                <div className="border-b border-border px-4 py-3 text-right text-muted-foreground">
+                  {item.expires_at ? formatDate(item.expires_at, undefined, locale) : offersT('detail.noExpiry')}
+                </div>
+
+                <div className="border-b border-border px-4 py-3 font-semibold text-foreground">{commonT('fields.minPurchase')}</div>
+                <div className="border-b border-border px-4 py-3 text-right text-muted-foreground">
+                  {item.min_purchase_amount ? formatCurrency(item.min_purchase_amount, locale) : offersT('detail.notAvailable')}
+                </div>
+
+                <div className="px-4 py-3 font-semibold text-foreground">{commonT('fields.redemptions')}</div>
+                <div className="px-4 py-3 text-right text-muted-foreground">{item.current_redemptions}/{item.max_redemptions ?? '∞'}</div>
+              </div>
+            </div>
           </CardContent>
         </Card>
       </div>

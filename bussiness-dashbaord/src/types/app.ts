@@ -9,8 +9,10 @@ export type SupportTicket = Database['public']['Tables']['support_tickets']['Row
 export type SupportTicketMessage = Database['public']['Tables']['support_ticket_messages']['Row']
 export type SubscriptionPlan = Database['public']['Tables']['subscription_plans']['Row']
 export type Notification = Database['public']['Tables']['notifications']['Row']
+export type BillingProduct = Database['public']['Tables']['billing_products']['Row']
 
 export type SubscriptionStatus = Database['public']['Enums']['subscription_status']
+export type SubscriptionTier = Database['public']['Enums']['subscription_tier']
 export type OfferType = Database['public']['Enums']['offer_type']
 export type OfferStatus = Database['public']['Enums']['offer_status']
 export type IdentificationMethod = Database['public']['Enums']['identification_method']
@@ -35,7 +37,10 @@ export interface MemberLookupResult {
   first_name: string | null
   last_name: string | null
   avatar_url: string | null
-  subscription_plan: 'free' | 'paid'
+  subscription_tier: SubscriptionTier
+  subscription_status: SubscriptionStatus
+  remaining_monthly_redemptions: number
+  remaining_monthly_unlocks: number
   is_active: boolean
 }
 
@@ -43,6 +48,29 @@ export interface TransactionResult {
   transaction_id: string
   rewards_earned: number
   user_name: string
+  business_monthly_transactions_remaining: number
+  business_extra_tx_balance: number
+  member_monthly_redemptions_remaining: number | null
+}
+
+export interface BusinessSubscriptionSummary {
+  business_id: string
+  subscription_tier: SubscriptionTier
+  subscription_status: SubscriptionStatus
+  plan_name: string
+  setup_fee_paid: boolean
+  setup_fee_paid_at: string | null
+  subscription_started_at: string | null
+  subscription_ends_at: string | null
+  lemon_squeezy_subscription_id: string | null
+  monthly_transaction_limit: number
+  monthly_transactions_used: number
+  monthly_transactions_remaining: number
+  extra_transactions_used: number
+  extra_tx_balance: number
+  active_offer_limit: number
+  active_offers_used: number
+  month_start: string
 }
 
 export interface OnboardingDraft {

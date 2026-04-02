@@ -46,6 +46,7 @@ const customers = {
     title: 'Member found',
     description: 'Check the member before recording a purchase.',
     memberCode: 'Member code {{code}}',
+    redemptionsRemaining: '{{count}} offer redemptions remaining this month',
     recordTransaction: 'Record transaction',
     chooseAnother: 'Choose another',
     cancel: 'Cancel',
@@ -62,6 +63,11 @@ const customers = {
     notesPlaceholder: 'Optional staff notes',
     submit: 'Confirm transaction',
     submitting: 'Recording...',
+    toast: {
+      loading: 'Recording transaction...',
+      success: 'Transaction recorded successfully.',
+      error: 'Could not record transaction.',
+    },
   },
   history: {
     title: 'Transaction history',

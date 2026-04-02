@@ -31,6 +31,18 @@ const offers = {
     saving: 'Saving…',
     imageInputLabel: 'Offer image',
     imageDisabledPlaceholder: 'Image upload coming soon',
+    toast: {
+      create: {
+        loading: 'Creating offer...',
+        success: 'Offer created successfully.',
+        error: 'Could not create offer.',
+      },
+      edit: {
+        loading: 'Saving offer changes...',
+        success: 'Offer updated successfully.',
+        error: 'Could not update offer.',
+      },
+    },
   },
   types: {
     percentage_discount: 'Percentage discount',
@@ -51,6 +63,16 @@ const offers = {
     metadataTitle: 'Offer details',
     noExpiry: 'No expiry',
     notAvailable: 'n/a',
+    delete: 'Delete',
+    deleting: 'Deleting…',
+    deleteConfirm: 'Are you sure you want to delete this offer?',
+    toast: {
+      delete: {
+        loading: 'Deleting offer...',
+        success: 'Offer deleted successfully.',
+        error: 'Could not delete offer.',
+      },
+    },
   },
 } as const
 

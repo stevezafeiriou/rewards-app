@@ -19,6 +19,7 @@ import { useAppTranslation } from '@/i18n/use-app-translation'
 import { createSupportReplySchema, createSupportTicketSchema } from '@/lib/schemas'
 import { queryKeys } from '@/lib/query-keys'
 import { supabase } from '@/lib/supabase'
+import { getToastErrorMessage, toastPromise } from '@/lib/toast'
 import { formatDate } from '@/lib/utils'
 
 export function SupportPage() {
@@ -107,7 +108,13 @@ export function NewTicketPage() {
         <CardContent>
           <form
             className="grid gap-4 lg:grid-cols-2"
-            onSubmit={form.handleSubmit((values) => mutation.mutate(values))}
+            onSubmit={form.handleSubmit(async (values) => {
+              await toastPromise(mutation.mutateAsync(values), {
+                loading: t('support.form.toast.loading'),
+                success: t('support.form.toast.success'),
+                error: (error: unknown) => getToastErrorMessage(error, t('support.form.toast.error')),
+              })
+            })}
           >
             <div className="lg:col-span-2">
               <FormField label={t('support.form.subject')} error={form.formState.errors.subject?.message}>
@@ -216,7 +223,13 @@ export function TicketDetailPage() {
           )) : <EmptyState title={t('support.ticket.emptyTitle')} description={t('support.ticket.emptyDescription')} />}
           <form
             className="space-y-4"
-            onSubmit={form.handleSubmit((values) => mutation.mutate(values))}
+            onSubmit={form.handleSubmit(async (values) => {
+              await toastPromise(mutation.mutateAsync(values), {
+                loading: t('support.ticket.toast.loading'),
+                success: t('support.ticket.toast.success'),
+                error: (error: unknown) => getToastErrorMessage(error, t('support.ticket.toast.error')),
+              })
+            })}
           >
             <FormField label={t('support.ticket.replySubmit')} error={form.formState.errors.message?.message}>
               <Textarea placeholder={t('support.ticket.replyPlaceholder')} {...form.register('message')} error={form.formState.errors.message?.message} />

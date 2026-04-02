@@ -20,6 +20,7 @@ import { useBusiness, useMemberLookup, useOffers, useRecordTransaction, useTrans
 import { useAppTranslation } from '@/i18n/use-app-translation'
 import { createManualCustomerLookupSchema, createTransactionSchema } from '@/lib/schemas'
 import { clearSessionValue, readSessionValue, writeSessionValue } from '@/lib/storage'
+import { getToastErrorMessage, toastPromise } from '@/lib/toast'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import type { MemberLookupResult } from '@/types/app'
 
@@ -262,9 +263,12 @@ export function CustomerFoundPage() {
               <p className="text-xl font-bold text-foreground">{member.first_name} {member.last_name}</p>
               <p className="text-sm text-muted-foreground">{t('customers.member.memberCode', { code: member.public_user_id })}</p>
               <div className="flex gap-2">
-                <Badge tone={member.subscription_plan === 'paid' ? 'primary' : 'neutral'}>{t(`common.status.${member.subscription_plan}`)}</Badge>
+                <Badge tone={member.subscription_tier === 'end_user_free' ? 'neutral' : 'primary'}>{t(`common.status.${member.subscription_tier}`)}</Badge>
                 <Badge tone={member.is_active ? 'success' : 'danger'}>{t(`common.status.${member.is_active ? 'active' : 'inactive'}`)}</Badge>
               </div>
+              <p className="text-sm text-muted-foreground">
+                {t('customers.member.redemptionsRemaining', { count: member.remaining_monthly_redemptions })}
+              </p>
             </div>
           </div>
           <div className="flex flex-wrap gap-2 md:justify-end">
@@ -335,9 +339,12 @@ export function RecordTransactionPage() {
             <p className="text-xl font-bold text-foreground">{member.first_name} {member.last_name}</p>
             <p className="text-sm text-muted-foreground">{t('customers.member.memberCode', { code: member.public_user_id })}</p>
             <div className="flex gap-2">
-              <Badge tone={member.subscription_plan === 'paid' ? 'primary' : 'neutral'}>{t(`common.status.${member.subscription_plan}`)}</Badge>
+              <Badge tone={member.subscription_tier === 'end_user_free' ? 'neutral' : 'primary'}>{t(`common.status.${member.subscription_tier}`)}</Badge>
               <Badge tone={member.is_active ? 'success' : 'danger'}>{t(`common.status.${member.is_active ? 'active' : 'inactive'}`)}</Badge>
             </div>
+            <p className="text-sm text-muted-foreground">
+              {t('customers.member.redemptionsRemaining', { count: member.remaining_monthly_redemptions })}
+            </p>
             <div className="flex flex-wrap gap-2 pt-2">
               <Button
                 size="sm"
@@ -370,20 +377,27 @@ export function RecordTransactionPage() {
             <form
               className="space-y-4"
               onSubmit={form.handleSubmit((values) =>
-                recordTransaction.mutate(
-                  {
-                    businessId: business!.id,
-                    publicUserId: member.public_user_id,
-                    amountSpent: values.amount_spent,
-                    offerId: values.offer_id || undefined,
-                    notes: values.notes || undefined,
-                  },
-                  {
-                    onSuccess: async () => {
-                      writeSessionValue(TRANSACTION_DRAFT_KEY, values)
-                      await invalidateBusinessOperations(queryClient, business?.id)
-                      navigate('/customers/history')
+                toastPromise(
+                  recordTransaction.mutateAsync(
+                    {
+                      businessId: business!.id,
+                      publicUserId: member.public_user_id,
+                      amountSpent: values.amount_spent,
+                      offerId: values.offer_id || undefined,
+                      notes: values.notes || undefined,
                     },
+                    {
+                      onSuccess: async () => {
+                        writeSessionValue(TRANSACTION_DRAFT_KEY, values)
+                        await invalidateBusinessOperations(queryClient, business?.id)
+                        navigate('/customers/history')
+                      },
+                    },
+                  ),
+                  {
+                    loading: t('customers.transaction.toast.loading'),
+                    success: t('customers.transaction.toast.success'),
+                    error: (error: unknown) => getToastErrorMessage(error, t('customers.transaction.toast.error')),
                   },
                 ),
               )}

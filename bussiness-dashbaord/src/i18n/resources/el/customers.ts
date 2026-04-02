@@ -46,6 +46,7 @@ const customers = {
     title: 'Βρέθηκε μέλος',
     description: 'Ελέγξτε το μέλος πριν την καταχώριση αγοράς.',
     memberCode: 'Κωδικός μέλους {{code}}',
+    redemptionsRemaining: '{{count}} εξαργυρώσεις προσφορών απομένουν αυτόν τον μήνα',
     recordTransaction: 'Καταχώριση συναλλαγής',
     chooseAnother: 'Άλλο μέλος',
     cancel: 'Ακύρωση',
@@ -62,6 +63,11 @@ const customers = {
     notesPlaceholder: 'Προαιρετικές σημειώσεις',
     submit: 'Επιβεβαίωση συναλλαγής',
     submitting: 'Καταχώριση...',
+    toast: {
+      loading: 'Καταχώριση συναλλαγής...',
+      success: 'Η συναλλαγή καταχωρίστηκε.',
+      error: 'Δεν ήταν δυνατή η καταχώριση της συναλλαγής.',
+    },
   },
   history: {
     title: 'Ιστορικό συναλλαγών',

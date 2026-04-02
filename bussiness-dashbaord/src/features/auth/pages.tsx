@@ -22,6 +22,7 @@ import {
   createResetPasswordSchema,
 } from '@/lib/schemas'
 import { supabase } from '@/lib/supabase'
+import { getToastErrorMessage, toastPromise } from '@/lib/toast'
 
 type LoginValues = {
   email: string
@@ -33,10 +34,6 @@ type RegisterValues = {
   lastName: string
   email: string
   password: string
-}
-
-function getErrorMessage(error: unknown, fallback: string) {
-  return error instanceof Error ? error.message : fallback
 }
 
 type LegalBlock =
@@ -358,7 +355,13 @@ export function LoginPage() {
     >
       <form
         className="space-y-4"
-        onSubmit={form.handleSubmit((values) => login.mutate(values))}
+        onSubmit={form.handleSubmit(async (values) => {
+          await toastPromise(login.mutateAsync(values), {
+            loading: t('auth.login.toast.loading'),
+            success: t('auth.login.toast.success'),
+            error: (error: unknown) => getToastErrorMessage(error, t('auth.login.toast.error')),
+          })
+        })}
       >
         <FormField label={t('common.fields.email')} error={form.formState.errors.email?.message}>
           <Input placeholder={t('auth.login.emailPlaceholder')} {...form.register('email')} error={form.formState.errors.email?.message} />
@@ -371,7 +374,7 @@ export function LoginPage() {
         </Button>
         {login.isError ? (
           <div className="rounded-[1rem] border border-danger-border bg-danger-bg px-4 py-3 text-sm text-danger-text">
-            {getErrorMessage(login.error, t('auth.login.failed'))}
+            {getToastErrorMessage(login.error, t('auth.login.failed'))}
           </div>
         ) : null}
       </form>
@@ -438,7 +441,13 @@ export function RegisterPage() {
     >
       <form
         className="space-y-4"
-        onSubmit={form.handleSubmit((values) => register.mutate(values))}
+        onSubmit={form.handleSubmit(async (values) => {
+          await toastPromise(register.mutateAsync(values), {
+            loading: t('auth.register.toast.loading'),
+            success: t('auth.register.toast.success'),
+            error: (error: unknown) => getToastErrorMessage(error, t('auth.register.toast.error')),
+          })
+        })}
       >
         <div className="grid gap-4 sm:grid-cols-2">
           <FormField label={t('auth.register.firstNamePlaceholder')} error={form.formState.errors.firstName?.message}>
@@ -491,7 +500,13 @@ export function ForgotPasswordPage() {
     >
       <form
         className="space-y-4"
-        onSubmit={form.handleSubmit((values) => reset.mutate(values))}
+        onSubmit={form.handleSubmit(async (values) => {
+          await toastPromise(reset.mutateAsync(values), {
+            loading: t('auth.forgotPassword.toast.loading'),
+            success: t('auth.forgotPassword.toast.success'),
+            error: (error: unknown) => getToastErrorMessage(error, t('auth.forgotPassword.toast.error')),
+          })
+        })}
       >
         <FormField label={t('common.fields.email')} error={form.formState.errors.email?.message}>
           <Input placeholder={t('auth.forgotPassword.emailPlaceholder')} {...form.register('email')} error={form.formState.errors.email?.message} />
@@ -529,7 +544,13 @@ export function ResetPasswordPage() {
     >
       <form
         className="space-y-4"
-        onSubmit={form.handleSubmit((values) => mutation.mutate(values))}
+        onSubmit={form.handleSubmit(async (values) => {
+          await toastPromise(mutation.mutateAsync(values), {
+            loading: t('auth.resetPassword.toast.loading'),
+            success: t('auth.resetPassword.toast.success'),
+            error: (error: unknown) => getToastErrorMessage(error, t('auth.resetPassword.toast.error')),
+          })
+        })}
       >
         <FormField label={t('auth.resetPassword.passwordPlaceholder')} helper={t('auth.resetPassword.passwordHelper')} error={form.formState.errors.password?.message}>
           <Input type="password" placeholder={t('auth.resetPassword.passwordPlaceholder')} {...form.register('password')} error={form.formState.errors.password?.message} />
@@ -584,7 +605,7 @@ export function AuthCallbackPage() {
         <HiOutlineArrowPath className="h-10 w-10 animate-spin text-primary" />
         <p className="text-sm text-muted-foreground">
           {callback.isError
-            ? getErrorMessage(callback.error, t('auth.callback.failed'))
+            ? getToastErrorMessage(callback.error, t('auth.callback.failed'))
             : t('auth.callback.loading')}
         </p>
       </div>

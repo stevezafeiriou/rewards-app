@@ -20,6 +20,8 @@ const onboarding = {
     waiting: 'Waiting for subscription activation',
     checkout: 'Continue to checkout',
     payment: 'Continue to payment',
+    startSetup: 'Pay setup fee',
+    startSubscription: 'Start subscription',
     adminBypass: 'Activate admin bypass',
   },
   review: {
@@ -34,6 +36,11 @@ const onboarding = {
   },
   payment: {
     planEyebrow: 'Business plan',
+    pageTitle: 'Activate your business subscription',
+    pageDescription: 'Choose the plan that fits your business and continue to checkout.',
+    choosePlanLabel: 'Choose a plan',
+    selectedPlanLabel: 'Selected plan',
+    planIncludes: 'Includes up to {{offers}} active offers and {{transactions}} successful member transactions per month.',
     readyEyebrow: 'Ready',
     readyTitle: 'Checkout',
     adminBypassTitle: 'Admin bypass active',
@@ -43,11 +50,65 @@ const onboarding = {
     noPlan: 'No active business plan found.',
     checkoutError: 'Could not start checkout.',
     billingNote: 'Complete checkout and return here to finish activation.',
+    returnTitle: 'Payment received. Checking activation.',
+    returnDescription: 'We are checking your business subscription in the database. This may take a few seconds after Lemon Squeezy confirms the payment.',
+    checkingStatus: 'Checking subscription status...',
+    checkingButton: 'Checking activation...',
+    setupNote: 'Start with the one-time setup fee. After it is paid, come back here to start the recurring subscription.',
+    subscriptionNote: 'Your setup fee is already paid. Start the recurring subscription to activate the dashboard.',
     monthlyWithSetup: '{{monthly}}/month plus a one-time setup fee of {{setup}}.',
+    setupStep: 'Step 1 of 2',
+    subscriptionStep: 'Step 2 of 2',
+    offerLimit: 'Up to {{count}} active offers',
+    txLimit: 'Up to {{count}} successful member transactions per month',
   },
   complete: {
     title: 'Subscription status: {{status}}',
     description: 'We are checking your subscription before opening the dashboard.',
+    activeDescription: 'Your business subscription is active. You can finish onboarding and open the dashboard.',
+    setupPaidDescription: 'Your setup fee is paid. Go back to the payment step to start the recurring subscription.',
+  },
+  toast: {
+    businessInfo: {
+      loading: 'Saving business details...',
+      success: 'Business details saved.',
+      error: 'Could not save business details.',
+    },
+    category: {
+      loading: 'Saving category...',
+      success: 'Category saved.',
+      error: 'Could not save category.',
+    },
+    location: {
+      loading: 'Saving location...',
+      success: 'Location saved.',
+      error: 'Could not save location.',
+    },
+    contact: {
+      loading: 'Saving contact details...',
+      success: 'Contact details saved.',
+      error: 'Could not save contact details.',
+    },
+    media: {
+      loading: 'Saving business media...',
+      success: 'Business media saved.',
+      error: 'Could not save business media.',
+    },
+    operations: {
+      loading: 'Saving operating hours...',
+      success: 'Operating hours saved.',
+      error: 'Could not save operating hours.',
+    },
+    payment: {
+      loading: 'Opening checkout...',
+      success: 'Checkout opened.',
+      error: 'Could not open checkout.',
+    },
+    complete: {
+      loading: 'Finishing onboarding...',
+      success: 'Onboarding completed.',
+      error: 'Could not complete onboarding.',
+    },
   },
   steps: {
     businessInfo: {

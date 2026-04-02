@@ -26,6 +26,11 @@ const auth = {
     continueWithGoogle: 'Συνέχεια με Google',
     googleDisabled: 'Η σύνδεση με Google δεν είναι διαθέσιμη ακόμα.',
     or: 'ή',
+    toast: {
+      loading: 'Σύνδεση...',
+      success: 'Η σύνδεση ολοκληρώθηκε.',
+      error: 'Δεν ήταν δυνατή η σύνδεση.',
+    },
   },
   register: {
     title: 'Δημιουργία λογαριασμού επιχείρησης',
@@ -40,6 +45,11 @@ const auth = {
     submitting: 'Δημιουργία λογαριασμού...',
     alreadyHaveAccount: 'Έχετε ήδη λογαριασμό;',
     signIn: 'Σύνδεση',
+    toast: {
+      loading: 'Δημιουργία λογαριασμού...',
+      success: 'Ο λογαριασμός δημιουργήθηκε.',
+      error: 'Δεν ήταν δυνατή η δημιουργία λογαριασμού.',
+    },
   },
   forgotPassword: {
     title: 'Επαναφορά κωδικού',
@@ -48,6 +58,11 @@ const auth = {
     asideDescription: 'Αλλάξτε κωδικό και συνεχίστε κανονικά.',
     emailPlaceholder: 'you@company.com',
     submit: 'Αποστολή συνδέσμου',
+    toast: {
+      loading: 'Αποστολή συνδέσμου επαναφοράς...',
+      success: 'Ο σύνδεσμος επαναφοράς στάλθηκε.',
+      error: 'Δεν ήταν δυνατή η αποστολή του συνδέσμου.',
+    },
   },
   resetPassword: {
     title: 'Νέος κωδικός',
@@ -57,6 +72,11 @@ const auth = {
     passwordPlaceholder: 'Νέος κωδικός',
     confirmPasswordPlaceholder: 'Επιβεβαίωση νέου κωδικού',
     submit: 'Αποθήκευση κωδικού',
+    toast: {
+      loading: 'Αποθήκευση νέου κωδικού...',
+      success: 'Ο κωδικός ενημερώθηκε.',
+      error: 'Δεν ήταν δυνατή η ενημέρωση του κωδικού.',
+    },
   },
   callback: {
     title: 'Ολοκλήρωση σύνδεσης',

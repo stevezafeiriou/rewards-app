@@ -21,6 +21,11 @@ const support = {
     descriptionPlaceholder: 'Describe the issue',
     submit: 'Create ticket',
     submitting: 'Creating...',
+    toast: {
+      loading: 'Creating support ticket...',
+      success: 'Support ticket created.',
+      error: 'Could not create support ticket.',
+    },
   },
   ticket: {
     conversationTitle: 'Conversation',
@@ -29,6 +34,11 @@ const support = {
     replyPlaceholder: 'Write your message',
     replySubmit: 'Send reply',
     replying: 'Sending...',
+    toast: {
+      loading: 'Sending reply...',
+      success: 'Reply sent successfully.',
+      error: 'Could not send reply.',
+    },
   },
 } as const
 

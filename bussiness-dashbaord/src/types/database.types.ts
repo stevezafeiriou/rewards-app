@@ -111,6 +111,57 @@ export type Database = {
         }
         Relationships: []
       }
+      billing_products: {
+        Row: {
+          audience: string
+          created_at: string
+          credit_amount: number
+          id: string
+          is_active: boolean
+          kind: string
+          lemon_squeezy_product_id: string | null
+          lemon_squeezy_variant_id: string
+          linked_plan_code: string | null
+          metadata: Json
+          name: string
+          price_cents: number
+          product_code: string
+          updated_at: string
+        }
+        Insert: {
+          audience: string
+          created_at?: string
+          credit_amount?: number
+          id?: string
+          is_active?: boolean
+          kind: string
+          lemon_squeezy_product_id?: string | null
+          lemon_squeezy_variant_id: string
+          linked_plan_code?: string | null
+          metadata?: Json
+          name: string
+          price_cents: number
+          product_code: string
+          updated_at?: string
+        }
+        Update: {
+          audience?: string
+          created_at?: string
+          credit_amount?: number
+          id?: string
+          is_active?: boolean
+          kind?: string
+          lemon_squeezy_product_id?: string | null
+          lemon_squeezy_variant_id?: string
+          linked_plan_code?: string | null
+          metadata?: Json
+          name?: string
+          price_cents?: number
+          product_code?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       business_categories: {
         Row: {
           created_at: string
@@ -143,6 +194,48 @@ export type Database = {
           slug?: string
         }
         Relationships: []
+      }
+      business_monthly_usage: {
+        Row: {
+          business_id: string
+          created_at: string
+          extra_transactions_used: number
+          included_transactions_used: number
+          month_start: string
+          updated_at: string
+        }
+        Insert: {
+          business_id: string
+          created_at?: string
+          extra_transactions_used?: number
+          included_transactions_used?: number
+          month_start: string
+          updated_at?: string
+        }
+        Update: {
+          business_id?: string
+          created_at?: string
+          extra_transactions_used?: number
+          included_transactions_used?: number
+          month_start?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "business_monthly_usage_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "business_monthly_usage_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "v_active_marketplace_businesses"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       business_staff: {
         Row: {
@@ -193,6 +286,51 @@ export type Database = {
           },
         ]
       }
+      business_tx_credit_ledger: {
+        Row: {
+          business_id: string
+          created_at: string
+          credits_delta: number
+          id: string
+          metadata: Json
+          source_ref: string | null
+          source_type: string
+        }
+        Insert: {
+          business_id: string
+          created_at?: string
+          credits_delta: number
+          id?: string
+          metadata?: Json
+          source_ref?: string | null
+          source_type: string
+        }
+        Update: {
+          business_id?: string
+          created_at?: string
+          credits_delta?: number
+          id?: string
+          metadata?: Json
+          source_ref?: string | null
+          source_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "business_tx_credit_ledger_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "business_tx_credit_ledger_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "v_active_marketplace_businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       businesses: {
         Row: {
           address_line1: string | null
@@ -212,13 +350,13 @@ export type Database = {
           lemon_squeezy_subscription_id: string | null
           name: string
           onboarding_completed: boolean
-          one_time_fee_paid: boolean
           operating_hours: Json | null
           owner_id: string
           phone: string | null
           postal_code: string | null
           profile_image_url: string | null
           region: string | null
+          setup_fee_paid_at: string | null
           slug: string
           social_facebook: string | null
           social_instagram: string | null
@@ -226,6 +364,7 @@ export type Database = {
           subscription_ends_at: string | null
           subscription_started_at: string | null
           subscription_status: Database["public"]["Enums"]["subscription_status"]
+          subscription_tier: Database["public"]["Enums"]["subscription_tier"]
           updated_at: string
           website: string | null
         }
@@ -247,13 +386,13 @@ export type Database = {
           lemon_squeezy_subscription_id?: string | null
           name: string
           onboarding_completed?: boolean
-          one_time_fee_paid?: boolean
           operating_hours?: Json | null
           owner_id: string
           phone?: string | null
           postal_code?: string | null
           profile_image_url?: string | null
           region?: string | null
+          setup_fee_paid_at?: string | null
           slug: string
           social_facebook?: string | null
           social_instagram?: string | null
@@ -261,6 +400,7 @@ export type Database = {
           subscription_ends_at?: string | null
           subscription_started_at?: string | null
           subscription_status?: Database["public"]["Enums"]["subscription_status"]
+          subscription_tier?: Database["public"]["Enums"]["subscription_tier"]
           updated_at?: string
           website?: string | null
         }
@@ -282,13 +422,13 @@ export type Database = {
           lemon_squeezy_subscription_id?: string | null
           name?: string
           onboarding_completed?: boolean
-          one_time_fee_paid?: boolean
           operating_hours?: Json | null
           owner_id?: string
           phone?: string | null
           postal_code?: string | null
           profile_image_url?: string | null
           region?: string | null
+          setup_fee_paid_at?: string | null
           slug?: string
           social_facebook?: string | null
           social_instagram?: string | null
@@ -296,6 +436,7 @@ export type Database = {
           subscription_ends_at?: string | null
           subscription_started_at?: string | null
           subscription_status?: Database["public"]["Enums"]["subscription_status"]
+          subscription_tier?: Database["public"]["Enums"]["subscription_tier"]
           updated_at?: string
           website?: string | null
         }
@@ -316,8 +457,101 @@ export type Database = {
           },
         ]
       }
+      end_user_monthly_usage: {
+        Row: {
+          created_at: string
+          month_start: string
+          offer_redemptions_used: number
+          offers_unlocked_used: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          month_start: string
+          offer_redemptions_used?: number
+          offers_unlocked_used?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          month_start?: string
+          offer_redemptions_used?: number
+          offers_unlocked_used?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "end_user_monthly_usage_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      end_user_offer_unlocks: {
+        Row: {
+          business_id: string
+          id: string
+          month_start: string
+          offer_id: string
+          unlocked_at: string
+          user_id: string
+        }
+        Insert: {
+          business_id: string
+          id?: string
+          month_start: string
+          offer_id: string
+          unlocked_at?: string
+          user_id: string
+        }
+        Update: {
+          business_id?: string
+          id?: string
+          month_start?: string
+          offer_id?: string
+          unlocked_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "end_user_offer_unlocks_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "end_user_offer_unlocks_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "v_active_marketplace_businesses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "end_user_offer_unlocks_offer_id_fkey"
+            columns: ["offer_id"]
+            isOneToOne: false
+            referencedRelation: "offers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "end_user_offer_unlocks_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       end_user_profiles: {
         Row: {
+          card_fee_paid_at: string | null
+          card_included_by_plan: boolean
           created_at: string
           date_of_birth: string | null
           id: string
@@ -331,13 +565,15 @@ export type Database = {
           shipping_postal_code: string | null
           shipping_region: string | null
           subscription_ends_at: string | null
-          subscription_plan: Database["public"]["Enums"]["user_subscription_plan"]
           subscription_started_at: string | null
           subscription_status: Database["public"]["Enums"]["subscription_status"]
+          subscription_tier: Database["public"]["Enums"]["subscription_tier"]
           total_rewards_points: number
           updated_at: string
         }
         Insert: {
+          card_fee_paid_at?: string | null
+          card_included_by_plan?: boolean
           created_at?: string
           date_of_birth?: string | null
           id: string
@@ -351,13 +587,15 @@ export type Database = {
           shipping_postal_code?: string | null
           shipping_region?: string | null
           subscription_ends_at?: string | null
-          subscription_plan?: Database["public"]["Enums"]["user_subscription_plan"]
           subscription_started_at?: string | null
           subscription_status?: Database["public"]["Enums"]["subscription_status"]
+          subscription_tier?: Database["public"]["Enums"]["subscription_tier"]
           total_rewards_points?: number
           updated_at?: string
         }
         Update: {
+          card_fee_paid_at?: string | null
+          card_included_by_plan?: boolean
           created_at?: string
           date_of_birth?: string | null
           id?: string
@@ -371,9 +609,9 @@ export type Database = {
           shipping_postal_code?: string | null
           shipping_region?: string | null
           subscription_ends_at?: string | null
-          subscription_plan?: Database["public"]["Enums"]["user_subscription_plan"]
           subscription_started_at?: string | null
           subscription_status?: Database["public"]["Enums"]["subscription_status"]
+          subscription_tier?: Database["public"]["Enums"]["subscription_tier"]
           total_rewards_points?: number
           updated_at?: string
         }
@@ -752,41 +990,50 @@ export type Database = {
       }
       subscription_plans: {
         Row: {
+          audience: string
+          checkout_url: string | null
           created_at: string
           features: Json
           id: string
           is_active: boolean
           lemon_squeezy_product_id: string
           lemon_squeezy_variant_id: string
+          limits: Json
+          monthly_price_cents: number
           name: string
-          plan_type: string
-          price_monthly_cents: number
+          plan_code: string
           setup_fee_cents: number
           updated_at: string
         }
         Insert: {
+          audience: string
+          checkout_url?: string | null
           created_at?: string
           features?: Json
           id?: string
           is_active?: boolean
           lemon_squeezy_product_id: string
           lemon_squeezy_variant_id: string
+          limits?: Json
+          monthly_price_cents: number
           name: string
-          plan_type: string
-          price_monthly_cents: number
+          plan_code: string
           setup_fee_cents?: number
           updated_at?: string
         }
         Update: {
+          audience?: string
+          checkout_url?: string | null
           created_at?: string
           features?: Json
           id?: string
           is_active?: boolean
           lemon_squeezy_product_id?: string
           lemon_squeezy_variant_id?: string
+          limits?: Json
+          monthly_price_cents?: number
           name?: string
-          plan_type?: string
-          price_monthly_cents?: number
+          plan_code?: string
           setup_fee_cents?: number
           updated_at?: string
         }
@@ -1135,10 +1382,30 @@ export type Database = {
         Args: { p_user_id: string }
         Returns: undefined
       }
+      create_in_app_notification: {
+        Args: {
+          p_body?: string
+          p_category?: string
+          p_metadata?: Json
+          p_title: string
+          p_type?: string
+          p_user_id: string
+        }
+        Returns: string
+      }
       create_membership_card: { Args: { p_user_id: string }; Returns: string }
+      current_athens_month_start: { Args: { p_at?: string }; Returns: string }
       current_user_has_role: {
         Args: { p_role: Database["public"]["Enums"]["user_role"] }
         Returns: boolean
+      }
+      ensure_business_monthly_usage_row: {
+        Args: { p_business_id: string; p_month_start: string }
+        Returns: undefined
+      }
+      ensure_end_user_monthly_usage_row: {
+        Args: { p_month_start: string; p_user_id: string }
+        Returns: undefined
       }
       ensure_profile_for_role: {
         Args: { p_role: Database["public"]["Enums"]["user_role"] }
@@ -1150,6 +1417,34 @@ export type Database = {
       get_business_dashboard_stats: {
         Args: { p_business_id: string }
         Returns: Json
+      }
+      get_business_monthly_tx_limit: {
+        Args: { p_tier: Database["public"]["Enums"]["subscription_tier"] }
+        Returns: number
+      }
+      get_business_offer_limit: {
+        Args: { p_tier: Database["public"]["Enums"]["subscription_tier"] }
+        Returns: number
+      }
+      get_business_subscription_summary: {
+        Args: { p_business_id: string }
+        Returns: Json
+      }
+      get_business_tx_credit_balance: {
+        Args: { p_business_id: string }
+        Returns: number
+      }
+      get_end_user_membership_summary: {
+        Args: { p_user_id?: string }
+        Returns: Json
+      }
+      get_end_user_monthly_redemption_limit: {
+        Args: { p_tier: Database["public"]["Enums"]["subscription_tier"] }
+        Returns: number
+      }
+      get_end_user_monthly_unlock_limit: {
+        Args: { p_tier: Database["public"]["Enums"]["subscription_tier"] }
+        Returns: number
       }
       get_marketplace_offers: {
         Args: {
@@ -1170,8 +1465,11 @@ export type Database = {
           expires_at: string
           image_url: string
           is_favorited: boolean
+          is_unlocked: boolean
           offer_id: string
           offer_type: Database["public"]["Enums"]["offer_type"]
+          remaining_monthly_redemptions: number
+          remaining_monthly_unlocks: number
           requires_paid_membership: boolean
           starts_at: string
           title: string
@@ -1181,6 +1479,10 @@ export type Database = {
       is_business_owner: { Args: { p_business_id: string }; Returns: boolean }
       is_business_staff_member: {
         Args: { p_business_id: string }
+        Returns: boolean
+      }
+      is_paid_end_user_tier: {
+        Args: { p_tier: Database["public"]["Enums"]["subscription_tier"] }
         Returns: boolean
       }
       lookup_member: { Args: { p_identifier: string }; Returns: Json }
@@ -1196,6 +1498,11 @@ export type Database = {
         }
         Returns: Json
       }
+      should_deliver_in_app_notification: {
+        Args: { p_category: string; p_user_id: string }
+        Returns: boolean
+      }
+      unlock_offer: { Args: { p_offer_id: string }; Returns: Json }
     }
     Enums: {
       card_status:
@@ -1221,10 +1528,15 @@ export type Database = {
         | "paused"
         | "cancelled"
         | "expired"
+      subscription_tier:
+        | "end_user_free"
+        | "end_user_plus"
+        | "end_user_pro"
+        | "business_plus"
+        | "business_pro"
       ticket_priority: "low" | "medium" | "high"
       ticket_status: "open" | "in_progress" | "resolved" | "closed"
       user_role: "end_user" | "business" | "admin"
-      user_subscription_plan: "free" | "paid"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1381,10 +1693,16 @@ export const Constants = {
         "cancelled",
         "expired",
       ],
+      subscription_tier: [
+        "end_user_free",
+        "end_user_plus",
+        "end_user_pro",
+        "business_plus",
+        "business_pro",
+      ],
       ticket_priority: ["low", "medium", "high"],
       ticket_status: ["open", "in_progress", "resolved", "closed"],
       user_role: ["end_user", "business", "admin"],
-      user_subscription_plan: ["free", "paid"],
     },
   },
 } as const

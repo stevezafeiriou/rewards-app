@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useForm, useWatch } from 'react-hook-form'
-import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
+import { Link, Navigate, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import {
   HiMiniArrowRightOnRectangle,
   HiMiniBuildingOffice2,
@@ -29,10 +29,15 @@ import { Select } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { useAuth } from '@/features/auth/auth-provider'
 import { invalidateBusinessContext } from '@/features/business/cache'
-import { fetchCurrentBusiness, useBusiness, useBusinessCategories, useProfile, useSubscriptionPlans } from '@/features/business/hooks'
+import {
+  fetchCurrentBusiness,
+  useBusiness,
+  useBusinessCategories,
+  useProfile,
+  useSubscriptionPlans,
+} from '@/features/business/hooks'
 import { removeBusinessMediaAsset, updateBusinessDetails, uploadBusinessMediaAsset, upsertBusinessInfo } from '@/features/business/onboarding'
 import { useAppTranslation } from '@/i18n/use-app-translation'
-import { appEnv } from '@/lib/env'
 import {
   createBusinessInfoSchema,
   createCategorySchema,
@@ -42,6 +47,8 @@ import {
 } from '@/lib/schemas'
 import { clearOnboardingDraft, readOnboardingDraft, writeOnboardingDraft } from '@/lib/storage'
 import { supabase } from '@/lib/supabase'
+import { getToastErrorMessage, toastPromise } from '@/lib/toast'
+import { getLemonCheckoutUrl } from '@/lib/env'
 import { formatCurrency } from '@/lib/utils'
 import type { Business, BusinessCategory, BusinessOperatingHours, OnboardingDraft } from '@/types/app'
 import type { Json } from '@/types/database.types'
@@ -368,9 +375,10 @@ function OnboardingShell({
   const { data: business } = useBusiness()
   const { draft } = useDraft()
   const steps = useMemo(() => getOnboardingSteps(t), [t])
+  const normalizedPathname = location.pathname === '/payment' ? '/onboarding/payment' : location.pathname
 
   const snapshot = deriveBusinessFromDraft(business, draft)
-  const step = steps.find((item) => item.route === location.pathname) ?? steps[0]
+  const step = steps.find((item) => item.route === normalizedPathname) ?? steps[0]
   const stepIndex = steps.findIndex((item) => item.route === step.route)
   const progress = Math.round(((stepIndex + 1) / steps.length) * 100)
 
@@ -378,12 +386,12 @@ function OnboardingShell({
     if (step.key === 'complete') return
     const firstMissing = firstIncompleteRoute(snapshot, steps)
     if (!firstMissing) return
-    const currentIndex = steps.findIndex((item) => item.route === location.pathname)
+    const currentIndex = steps.findIndex((item) => item.route === normalizedPathname)
     const firstMissingIndex = steps.findIndex((item) => item.route === firstMissing)
     if (currentIndex > firstMissingIndex) {
       navigate(firstMissing, { replace: true })
     }
-  }, [location.pathname, navigate, snapshot, step.key, steps])
+  }, [navigate, normalizedPathname, snapshot, step.key, steps])
 
   return (
     <div className="flex min-h-screen items-center px-4 py-6 sm:px-6 lg:px-8">
@@ -523,7 +531,13 @@ export function BusinessInfoStep() {
     <OnboardingShell>
       <form
         className="space-y-6"
-        onSubmit={form.handleSubmit((values) => mutation.mutate(values))}
+        onSubmit={form.handleSubmit(async (values) => {
+          await toastPromise(mutation.mutateAsync(values), {
+            loading: t('onboarding.toast.businessInfo.loading'),
+            success: t('onboarding.toast.businessInfo.success'),
+            error: (error: unknown) => getToastErrorMessage(error, t('onboarding.toast.businessInfo.error')),
+          })
+        })}
       >
         <FieldBlock label={t('onboarding.fields.businessName')} helper={t('onboarding.fields.businessNameHelper')} error={form.formState.errors.name?.message}>
           <Input leftIcon={<HiMiniBuildingOffice2 className="size-4" />} placeholder={t('onboarding.fields.businessNamePlaceholder')} {...form.register('name')} error={form.formState.errors.name?.message} />
@@ -593,7 +607,13 @@ export function CategoryStep() {
     <OnboardingShell>
       <form
         className="space-y-6"
-        onSubmit={form.handleSubmit((values) => mutation.mutate(values))}
+        onSubmit={form.handleSubmit(async (values) => {
+          await toastPromise(mutation.mutateAsync(values), {
+            loading: t('onboarding.toast.category.loading'),
+            success: t('onboarding.toast.category.success'),
+            error: (error: unknown) => getToastErrorMessage(error, t('onboarding.toast.category.error')),
+          })
+        })}
       >
         <FieldBlock label={t('onboarding.fields.category')} helper={t('onboarding.fields.categoryHelper')} error={form.formState.errors.categoryId?.message}>
           <div className="grid gap-3 lg:grid-cols-2">
@@ -694,7 +714,13 @@ export function LocationStep() {
     <OnboardingShell>
       <form
         className="space-y-6"
-        onSubmit={form.handleSubmit((values) => mutation.mutate(values))}
+        onSubmit={form.handleSubmit(async (values) => {
+          await toastPromise(mutation.mutateAsync(values), {
+            loading: t('onboarding.toast.location.loading'),
+            success: t('onboarding.toast.location.success'),
+            error: (error: unknown) => getToastErrorMessage(error, t('onboarding.toast.location.error')),
+          })
+        })}
       >
         <div className="grid gap-5 md:grid-cols-2">
           <div className="md:col-span-2">
@@ -746,7 +772,7 @@ export function ContactStep() {
     resolver: zodResolver(createContactSchema(t)),
     values: {
       phone: initial.phone,
-      email: initial.email,
+      email: initial.email || user?.email || '',
       website: initial.website,
       social_facebook: initial.social_facebook,
       social_instagram: initial.social_instagram,
@@ -789,7 +815,13 @@ export function ContactStep() {
     <OnboardingShell>
       <form
         className="space-y-6"
-        onSubmit={form.handleSubmit((values) => mutation.mutate(values))}
+        onSubmit={form.handleSubmit(async (values) => {
+          await toastPromise(mutation.mutateAsync(values), {
+            loading: t('onboarding.toast.contact.loading'),
+            success: t('onboarding.toast.contact.success'),
+            error: (error: unknown) => getToastErrorMessage(error, t('onboarding.toast.contact.error')),
+          })
+        })}
       >
         <div className="grid gap-5 md:grid-cols-2">
           <FieldBlock label={t('onboarding.fields.phone')} helper={t('onboarding.fields.phoneHelper')} error={form.formState.errors.phone?.message}>
@@ -948,7 +980,13 @@ export function MediaStep() {
             type="button"
             loading={mutation.isPending}
             loadingText={t('common.states.loading')}
-            onClick={() => mutation.mutate()}
+            onClick={async () => {
+              await toastPromise(mutation.mutateAsync(), {
+                loading: t('onboarding.toast.media.loading'),
+                success: t('onboarding.toast.media.success'),
+                error: (error: unknown) => getToastErrorMessage(error, t('onboarding.toast.media.error')),
+              })
+            }}
           >
             {t('common.buttons.saveAndContinue')}
           </Button>
@@ -991,7 +1029,13 @@ export function OperationsStep() {
     <OnboardingShell>
       <form
         className="space-y-5"
-        onSubmit={form.handleSubmit((values) => mutation.mutate(values))}
+        onSubmit={form.handleSubmit(async (values) => {
+          await toastPromise(mutation.mutateAsync(values), {
+            loading: t('onboarding.toast.operations.loading'),
+            success: t('onboarding.toast.operations.success'),
+            error: (error: unknown) => getToastErrorMessage(error, t('onboarding.toast.operations.error')),
+          })
+        })}
       >
         {WEEKDAY_ORDER.map((day) => {
           const closedField = `${day}_closed` as const
@@ -1117,13 +1161,104 @@ export function ReviewStep() {
 }
 
 export function PaymentStep() {
+  const queryClient = useQueryClient()
   const navigate = useNavigate()
+  const [searchParams, setSearchParams] = useSearchParams()
   const { t, locale } = useAppTranslation(['onboarding', 'common'])
   const plans = useSubscriptionPlans()
-  const { data: business } = useBusiness()
+  const { data: business, refetch: refetchBusiness } = useBusiness()
   const profile = useProfile()
-  const plan = plans.data?.[0] ?? null
   const isAdmin = profile.data?.role === 'admin'
+  const businessPlans = plans.data ?? []
+  const [selectedPlanCode, setSelectedPlanCode] = useState<string>('')
+  const [isCheckingCheckout, setIsCheckingCheckout] = useState(false)
+  const checkoutStatus = searchParams.get('checkout')
+  const isCheckoutSuccess = checkoutStatus === 'success'
+
+  useEffect(() => {
+    if (!businessPlans.length) return
+
+    const preferredPlanCode =
+      business?.subscription_tier ??
+      selectedPlanCode ??
+      businessPlans[0]?.plan_code
+
+    const nextPlan =
+      businessPlans.find((entry) => entry.plan_code === preferredPlanCode) ??
+      businessPlans[0]
+
+    if (nextPlan && nextPlan.plan_code !== selectedPlanCode) {
+      setSelectedPlanCode(nextPlan.plan_code)
+    }
+  }, [business?.subscription_tier, businessPlans, selectedPlanCode])
+
+  const selectedPlan =
+    businessPlans.find((entry) => entry.plan_code === selectedPlanCode) ??
+    businessPlans[0] ??
+    null
+
+  const buildHostedCheckoutUrl = (
+    checkoutUrl: string,
+    params: Record<string, string>,
+    email?: string | null,
+  ) => {
+    const url = new URL(checkoutUrl)
+
+    Object.entries(params).forEach(([key, value]) => {
+      url.searchParams.set(`checkout[custom][${key}]`, value)
+    })
+
+    if (email) {
+      url.searchParams.set('checkout[email]', email)
+    }
+
+    return url.toString()
+  }
+
+  useEffect(() => {
+    if (!business || !isCheckoutSuccess) return
+    if (business.subscription_status === 'active') {
+      navigate('/onboarding/complete', { replace: true })
+      return
+    }
+
+    let isCancelled = false
+    let timer: number | null = null
+
+    const syncBusinessStatus = async () => {
+      setIsCheckingCheckout(true)
+      await invalidateBusinessContext(queryClient, profile.data?.id)
+      const result = await refetchBusiness()
+
+      if (isCancelled) return
+
+      const refreshedBusiness = result.data?.business ?? business
+      if (refreshedBusiness?.subscription_status === 'active') {
+        setSearchParams((current) => {
+          const next = new URLSearchParams(current)
+          next.delete('checkout')
+          return next
+        }, { replace: true })
+        navigate('/onboarding/complete', { replace: true })
+        return
+      }
+
+      timer = window.setTimeout(() => {
+        void syncBusinessStatus()
+      }, 3000)
+      setIsCheckingCheckout(false)
+    }
+
+    void syncBusinessStatus()
+
+    return () => {
+      isCancelled = true
+      setIsCheckingCheckout(false)
+      if (timer) {
+        window.clearTimeout(timer)
+      }
+    }
+  }, [business, isCheckoutSuccess, navigate, profile.data?.id, queryClient, refetchBusiness, setSearchParams])
 
   const mutation = useMutation({
     mutationFn: async () => {
@@ -1134,9 +1269,10 @@ export function PaymentStep() {
           .from('businesses')
           .update({
             subscription_status: 'active',
+            subscription_tier: 'business_plus',
             onboarding_completed: true,
             is_active: true,
-            one_time_fee_paid: true,
+            setup_fee_paid_at: new Date().toISOString(),
             subscription_started_at: new Date().toISOString(),
           })
           .eq('id', business.id)
@@ -1145,23 +1281,22 @@ export function PaymentStep() {
         return { mode: 'admin_bypass' as const }
       }
 
-      if (!plan) throw new Error(t('onboarding.payment.noPlan'))
-      const { data, error } = await supabase.functions.invoke('create-checkout', {
-        body: {
-          variant_id: plan.lemon_squeezy_variant_id,
-          plan_type: 'business',
-          redirect_url: `${appEnv.appUrl}/onboarding/complete`,
-          custom_data: {
-            business_id: business.id,
-          },
-        },
-      })
+      if (!selectedPlan) throw new Error(t('onboarding.payment.noPlan'))
+      if (!profile.data?.id) throw new Error(t('common.errors.authRequired'))
+      const checkoutTarget = getLemonCheckoutUrl(selectedPlan.plan_code, selectedPlan.checkout_url)
+      if (!checkoutTarget) throw new Error(t('onboarding.payment.checkoutError'))
 
-      if (error) throw error
-      if (!data?.checkout_url) throw new Error(t('onboarding.payment.checkoutError'))
+      const checkoutUrl = buildHostedCheckoutUrl(checkoutTarget, {
+        user_id: profile.data.id,
+        business_id: business.id,
+        target_code: selectedPlan.plan_code,
+        purchase_type: 'subscription',
+        audience: 'business',
+      }, profile.data.email)
+
       return {
         mode: 'checkout' as const,
-        checkoutUrl: data.checkout_url as string,
+        checkoutUrl,
       }
     },
     onSuccess: async (result) => {
@@ -1182,44 +1317,110 @@ export function PaymentStep() {
     <OnboardingShell>
       <div className="space-y-6">
         <div className="rounded-[1.15rem] border border-border bg-elevated p-5">
-          <div className="flex flex-wrap items-start justify-between gap-4">
+          <div className="space-y-3">
             <div>
               <p className="text-xs font-bold uppercase tracking-[0.18em] text-primary">{t('onboarding.payment.planEyebrow')}</p>
               <h2 className="mt-2 text-2xl font-extrabold text-foreground">
-                {isAdmin ? t('onboarding.payment.adminBypassTitle') : plan?.name ?? t('onboarding.payment.fallbackPlan')}
+                {isAdmin ? t('onboarding.payment.adminBypassTitle') : t('onboarding.payment.pageTitle')}
               </h2>
               <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
                 {isAdmin
                   ? t('onboarding.payment.adminBypassDescription')
-                  : plan
-                  ? t('onboarding.payment.monthlyWithSetup', {
-                    monthly: formatCurrency(plan.price_monthly_cents / 100, locale),
-                    setup: formatCurrency(plan.setup_fee_cents / 100, locale),
-                  })
-                  : t('onboarding.payment.noPlan')}
+                  : t('onboarding.payment.pageDescription')}
               </p>
             </div>
-            <div className="rounded-[0.95rem] bg-primary-weak px-4 py-2.5 text-right">
-              <p className="text-xs font-bold uppercase tracking-[0.18em] text-primary">{t('onboarding.payment.readyEyebrow')}</p>
-              <p className="mt-1 text-lg font-bold text-primary">{t('onboarding.payment.readyTitle')}</p>
-            </div>
+            {!isAdmin && selectedPlan ? (
+              <div className="rounded-[1rem] border border-primary/20 bg-primary-weak/30 p-4">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <p className="text-xs font-bold uppercase tracking-[0.16em] text-primary">{t('onboarding.payment.selectedPlanLabel')}</p>
+                    <p className="mt-1 text-lg font-bold text-foreground">{selectedPlan.name}</p>
+                  </div>
+                  <span className="rounded-full bg-primary px-3 py-1 text-xs font-semibold text-white">
+                    {formatCurrency(selectedPlan.monthly_price_cents / 100, locale)}/mo
+                  </span>
+                </div>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  {t('onboarding.payment.planIncludes', {
+                    offers: Number((selectedPlan.limits as { active_offers?: number })?.active_offers ?? 0),
+                    transactions: Number((selectedPlan.limits as { monthly_transactions?: number })?.monthly_transactions ?? 0),
+                  })}
+                </p>
+              </div>
+            ) : null}
           </div>
         </div>
-        <div className="rounded-[1.05rem] border border-warning-border bg-warning-bg p-4 text-sm text-warning-text">
-          {isAdmin ? t('onboarding.payment.adminBypassNote') : t('onboarding.payment.billingNote')}
-        </div>
+        {!isAdmin ? (
+          <div className="space-y-3">
+            <p className="text-sm font-semibold text-foreground">{t('onboarding.payment.choosePlanLabel')}</p>
+            <div className="grid gap-4 lg:grid-cols-2">
+              {businessPlans.map((plan) => {
+                const isSelected = selectedPlan?.plan_code === plan.plan_code
+
+                return (
+                  <button
+                    key={plan.id}
+                    type="button"
+                    className={`rounded-[1.25rem] border p-5 text-left transition ${
+                      isSelected ? 'border-primary bg-primary-weak/40' : 'border-border bg-surface-2'
+                    }`}
+                    onClick={() => setSelectedPlanCode(plan.plan_code)}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="text-lg font-bold text-foreground">{plan.name}</p>
+                        <p className="mt-2 text-sm text-muted-foreground">
+                          {formatCurrency(plan.monthly_price_cents / 100, locale)}/mo
+                        </p>
+                      </div>
+                      <span className="rounded-full bg-primary-weak px-3 py-1 text-xs font-semibold text-primary">
+                        {t(`common.status.${plan.plan_code}`)}
+                      </span>
+                    </div>
+                    <div className="mt-4 space-y-1 text-sm text-muted-foreground">
+                      <p>{t('onboarding.payment.offerLimit', { count: Number((plan.limits as { active_offers?: number })?.active_offers ?? 0) })}</p>
+                      <p>{t('onboarding.payment.txLimit', { count: Number((plan.limits as { monthly_transactions?: number })?.monthly_transactions ?? 0) })}</p>
+                    </div>
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+        ) : null}
+        {isCheckoutSuccess ? (
+          <div className="rounded-[1.05rem] border border-primary/20 bg-primary-weak/30 p-4">
+            <p className="text-sm font-semibold text-foreground">{t('onboarding.payment.returnTitle')}</p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {isCheckingCheckout ? t('onboarding.payment.checkingStatus') : t('onboarding.payment.returnDescription')}
+            </p>
+          </div>
+        ) : (
+          <div className="rounded-[1.05rem] border border-warning-border bg-warning-bg p-4 text-sm text-warning-text">
+            {isAdmin ? t('onboarding.payment.adminBypassNote') : t('onboarding.payment.billingNote')}
+          </div>
+        )}
         <div className="flex flex-wrap items-center gap-3">
           <Link to="/onboarding/review">
             <Button type="button" variant="outline">{t('common.buttons.back')}</Button>
           </Link>
           <MutationErrorText error={mutation.error} />
           <Button
-            disabled={!isAdmin && !plan}
-            loading={mutation.isPending}
-            loadingText={t('common.states.loading')}
-            onClick={() => mutation.mutate()}
+            disabled={!isAdmin && !selectedPlan}
+            loading={mutation.isPending || isCheckingCheckout}
+            loadingText={isCheckingCheckout ? t('onboarding.payment.checkingStatus') : t('common.states.loading')}
+            onClick={async () => {
+              await toastPromise(mutation.mutateAsync(), {
+                loading: t('onboarding.toast.payment.loading'),
+                success: t('onboarding.toast.payment.success'),
+                error: (error: unknown) => getToastErrorMessage(error, t('onboarding.toast.payment.error')),
+              })
+            }}
           >
-            {isAdmin ? t('onboarding.actions.adminBypass') : t('onboarding.actions.checkout')}
+            {isAdmin
+              ? t('onboarding.actions.adminBypass')
+              : isCheckoutSuccess
+              ? t('onboarding.payment.checkingButton')
+              : t('onboarding.actions.checkout')}
           </Button>
         </div>
       </div>
@@ -1272,7 +1473,11 @@ export function OnboardingCompletePage() {
             <HiMiniCheck className="size-8" />
           </div>
           <h2 className="text-3xl font-extrabold text-foreground">{t('onboarding.complete.title', { status: t(`common.status.${business.subscription_status}`) })}</h2>
-          <p className="mt-3 max-w-2xl text-sm leading-7 text-muted-foreground">{t('onboarding.complete.description')}</p>
+          <p className="mt-3 max-w-2xl text-sm leading-7 text-muted-foreground">
+            {business.subscription_status === 'active'
+              ? t('onboarding.complete.activeDescription')
+              : t('onboarding.complete.description')}
+          </p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
           <Link to="/onboarding/payment">
@@ -1280,7 +1485,13 @@ export function OnboardingCompletePage() {
           </Link>
           <MutationErrorText error={finalize.error} />
           <Button
-            onClick={() => finalize.mutate()}
+            onClick={async () => {
+              await toastPromise(finalize.mutateAsync(), {
+                loading: t('onboarding.toast.complete.loading'),
+                success: t('onboarding.toast.complete.success'),
+                error: (error: unknown) => getToastErrorMessage(error, t('onboarding.toast.complete.error')),
+              })
+            }}
             disabled={business.subscription_status !== 'active'}
             loading={finalize.isPending}
             loadingText={t('common.states.loading')}

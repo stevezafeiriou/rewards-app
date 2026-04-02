@@ -19,6 +19,7 @@ import { useBusiness } from '@/features/business/hooks'
 import { useAppTranslation } from '@/i18n/use-app-translation'
 import { createContactSchema } from '@/lib/schemas'
 import { supabase } from '@/lib/supabase'
+import { getToastErrorMessage, toastPromise } from '@/lib/toast'
 import type { BusinessOperatingHours } from '@/types/app'
 import type { Json } from '@/types/database.types'
 
@@ -306,9 +307,13 @@ export function EditBusinessProfilePage() {
         <CardContent>
           <form
             className="grid gap-4 lg:grid-cols-2"
-            onSubmit={(event) => {
+            onSubmit={async (event) => {
               event.preventDefault()
-              mutation.mutate()
+              await toastPromise(mutation.mutateAsync(), {
+                loading: t('profile.edit.toast.loading'),
+                success: t('profile.edit.toast.success'),
+                error: (error: unknown) => getToastErrorMessage(error, t('profile.edit.toast.error')),
+              })
             }}
           >
             <FormField label={t('common.fields.name')}>

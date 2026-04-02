@@ -26,6 +26,11 @@ const auth = {
     continueWithGoogle: 'Continue with Google',
     googleDisabled: 'Google sign-in is not available yet.',
     or: 'or',
+    toast: {
+      loading: 'Signing in...',
+      success: 'Signed in successfully.',
+      error: 'Could not sign in.',
+    },
   },
   register: {
     title: 'Create business account',
@@ -40,6 +45,11 @@ const auth = {
     submitting: 'Creating account...',
     alreadyHaveAccount: 'Already have an account?',
     signIn: 'Sign in',
+    toast: {
+      loading: 'Creating your account...',
+      success: 'Account created successfully.',
+      error: 'Could not create your account.',
+    },
   },
   forgotPassword: {
     title: 'Reset password',
@@ -48,6 +58,11 @@ const auth = {
     asideDescription: 'Reset your password and continue working.',
     emailPlaceholder: 'you@company.com',
     submit: 'Send reset link',
+    toast: {
+      loading: 'Sending reset link...',
+      success: 'Reset link sent.',
+      error: 'Could not send reset link.',
+    },
   },
   resetPassword: {
     title: 'Choose a new password',
@@ -57,6 +72,11 @@ const auth = {
     passwordPlaceholder: 'New password',
     confirmPasswordPlaceholder: 'Confirm new password',
     submit: 'Save password',
+    toast: {
+      loading: 'Saving new password...',
+      success: 'Password updated successfully.',
+      error: 'Could not update password.',
+    },
   },
   callback: {
     title: 'Completing sign-in',
