@@ -42,6 +42,7 @@ const common = {
   footer: {
     copyright: '© {{year}} Rewards Console. Με επιφύλαξη παντός δικαιώματος.',
     terms: 'Όροι χρήσης',
+    privacy: 'Πολιτική απορρήτου',
     support: 'Υποστήριξη',
   },
   errors: {

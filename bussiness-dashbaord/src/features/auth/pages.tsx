@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useEffect } from 'react'
+import { Fragment, type ReactNode, useEffect } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
 import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
@@ -39,25 +39,182 @@ function getErrorMessage(error: unknown, fallback: string) {
   return error instanceof Error ? error.message : fallback
 }
 
+type LegalBlock =
+  | { type: 'paragraph'; text: string }
+  | { type: 'unordered-list'; items: string[] }
+  | { type: 'ordered-list'; items: string[] }
+  | { type: 'heading'; level: 2 | 3; text: string }
+
+function renderInlineMarkdown(text: string) {
+  const parts = text.split(/(\*\*[^*]+\*\*|\[[^\]]+\]\([^)]+\))/g).filter(Boolean)
+
+  return parts.map((part, index) => {
+    const boldMatch = part.match(/^\*\*([^*]+)\*\*$/)
+    if (boldMatch) {
+      return <strong key={`${part}-${index}`} className="font-semibold text-foreground">{boldMatch[1]}</strong>
+    }
+
+    const linkMatch = part.match(/^\[([^\]]+)\]\(([^)]+)\)$/)
+    if (linkMatch) {
+      return (
+        <a
+          key={`${part}-${index}`}
+          href={linkMatch[2]}
+          target="_blank"
+          rel="noreferrer"
+          className="font-medium text-primary underline underline-offset-4"
+        >
+          {linkMatch[1]}
+        </a>
+      )
+    }
+
+    return <Fragment key={`${part}-${index}`}>{part}</Fragment>
+  })
+}
+
+function parseLegalMarkdown(content: string): LegalBlock[] {
+  const lines = content.split('\n')
+  const blocks: LegalBlock[] = []
+  let paragraphLines: string[] = []
+  let unorderedItems: string[] = []
+  let orderedItems: string[] = []
+
+  function flushParagraph() {
+    if (!paragraphLines.length) return
+    blocks.push({ type: 'paragraph', text: paragraphLines.join('\n').trim() })
+    paragraphLines = []
+  }
+
+  function flushUnordered() {
+    if (!unorderedItems.length) return
+    blocks.push({ type: 'unordered-list', items: unorderedItems })
+    unorderedItems = []
+  }
+
+  function flushOrdered() {
+    if (!orderedItems.length) return
+    blocks.push({ type: 'ordered-list', items: orderedItems })
+    orderedItems = []
+  }
+
+  function flushAll() {
+    flushParagraph()
+    flushUnordered()
+    flushOrdered()
+  }
+
+  for (const rawLine of lines) {
+    const line = rawLine.trimEnd()
+    const trimmed = line.trim()
+
+    if (!trimmed) {
+      flushAll()
+      continue
+    }
+
+    if (trimmed.startsWith('### ')) {
+      flushAll()
+      blocks.push({ type: 'heading', level: 3, text: trimmed.slice(4) })
+      continue
+    }
+
+    if (trimmed.startsWith('## ')) {
+      flushAll()
+      blocks.push({ type: 'heading', level: 2, text: trimmed.slice(3) })
+      continue
+    }
+
+    if (trimmed.startsWith('- ')) {
+      flushParagraph()
+      flushOrdered()
+      unorderedItems.push(trimmed.slice(2))
+      continue
+    }
+
+    if (/^\d+\.\s/.test(trimmed)) {
+      flushParagraph()
+      flushUnordered()
+      orderedItems.push(trimmed.replace(/^\d+\.\s/, ''))
+      continue
+    }
+
+    flushUnordered()
+    flushOrdered()
+    paragraphLines.push(line)
+  }
+
+  flushAll()
+
+  return blocks
+}
+
 function LegalArticlePage({
   title,
   intro,
   updated,
-  sections,
+  content,
   bottomLink,
 }: {
   title: string
   intro: string
   updated: string
-  sections: Array<{
-    title: string
-    body: string
-  }>
+  content: string
   bottomLink: {
     label: string
     to: string
   }
 }) {
+  const blocks = parseLegalMarkdown(content)
+
+  function renderBlock(block: LegalBlock, index: number): ReactNode {
+    if (block.type === 'heading') {
+      if (block.level === 2) {
+        return (
+          <section key={`${block.text}-${index}`} className="space-y-3 border-t border-border/70 pt-6">
+            <h2 className="text-lg font-bold text-foreground">{block.text}</h2>
+          </section>
+        )
+      }
+
+      return (
+        <h3 key={`${block.text}-${index}`} className="pt-1 text-base font-semibold text-foreground">
+          {block.text}
+        </h3>
+      )
+    }
+
+    if (block.type === 'unordered-list') {
+      return (
+        <ul key={`ul-${index}`} className="space-y-2 pl-5 text-sm leading-7 text-muted-foreground">
+          {block.items.map((item, itemIndex) => (
+            <li key={`${item}-${itemIndex}`} className="list-disc whitespace-pre-line">
+              {renderInlineMarkdown(item)}
+            </li>
+          ))}
+        </ul>
+      )
+    }
+
+    if (block.type === 'ordered-list') {
+      return (
+        <ol key={`ol-${index}`} className="space-y-2 pl-5 text-sm leading-7 text-muted-foreground">
+          {block.items.map((item, itemIndex) => (
+            <li key={`${item}-${itemIndex}`} className="list-decimal whitespace-pre-line">
+              {renderInlineMarkdown(item)}
+            </li>
+          ))}
+        </ol>
+      )
+    }
+
+    return (
+      <p key={`p-${index}`} className="max-w-none whitespace-pre-line text-sm leading-7 text-muted-foreground">
+        {renderInlineMarkdown(block.text)}
+      </p>
+    )
+  }
+
   return (
     <div className="mx-auto flex min-h-screen w-full max-w-5xl flex-col px-4 py-5 sm:px-6 lg:px-8">
       <main className="flex flex-1 items-start py-8 sm:py-12">
@@ -71,13 +228,8 @@ function LegalArticlePage({
             <p className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground/80">{updated}</p>
           </header>
 
-          <div className="space-y-8">
-            {sections.map((section) => (
-              <section key={section.title} className="space-y-2 border-t border-border/70 pt-6">
-                <h2 className="text-lg font-bold text-foreground">{section.title}</h2>
-                <p className="max-w-2xl text-sm leading-6 text-muted-foreground">{section.body}</p>
-              </section>
-            ))}
+          <div className="space-y-5">
+            {blocks.map((block, index) => renderBlock(block, index))}
           </div>
 
           <div className="pt-2">
@@ -154,26 +306,9 @@ export function TermsOfServicePage() {
     <LegalArticlePage
       title={t('legal.terms.title')}
       intro={t('legal.terms.intro')}
-      updated={t('legal.terms.updated', { date: 'April 1, 2026' })}
-      sections={[
-        {
-          title: t('legal.terms.sections.scopeTitle'),
-          body: t('legal.terms.sections.scopeBody'),
-        },
-        {
-          title: t('legal.terms.sections.useTitle'),
-          body: t('legal.terms.sections.useBody'),
-        },
-        {
-          title: t('legal.terms.sections.liabilityTitle'),
-          body: t('legal.terms.sections.liabilityBody'),
-        },
-        {
-          title: t('legal.terms.sections.contactTitle'),
-          body: t('legal.terms.sections.contactBody'),
-        },
-      ]}
-      bottomLink={{ label: t('legal.terms.sections.privacyLink'), to: '/privacy' }}
+      updated={t('legal.terms.updated')}
+      content={t('legal.terms.content')}
+      bottomLink={{ label: t('legal.terms.privacyLink'), to: '/privacy' }}
     />
   )
 }
@@ -185,26 +320,9 @@ export function PrivacyPolicyPage() {
     <LegalArticlePage
       title={t('legal.privacy.title')}
       intro={t('legal.privacy.intro')}
-      updated={t('legal.privacy.updated', { date: 'April 1, 2026' })}
-      sections={[
-        {
-          title: t('legal.privacy.sections.dataTitle'),
-          body: t('legal.privacy.sections.dataBody'),
-        },
-        {
-          title: t('legal.privacy.sections.useTitle'),
-          body: t('legal.privacy.sections.useBody'),
-        },
-        {
-          title: t('legal.privacy.sections.sharingTitle'),
-          body: t('legal.privacy.sections.sharingBody'),
-        },
-        {
-          title: t('legal.privacy.sections.contactTitle'),
-          body: t('legal.privacy.sections.contactBody'),
-        },
-      ]}
-      bottomLink={{ label: t('legal.privacy.sections.termsLink'), to: '/terms' }}
+      updated={t('legal.privacy.updated')}
+      content={t('legal.privacy.content')}
+      bottomLink={{ label: t('legal.privacy.termsLink'), to: '/terms' }}
     />
   )
 }

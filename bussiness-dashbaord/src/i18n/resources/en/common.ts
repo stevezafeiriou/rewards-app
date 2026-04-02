@@ -42,6 +42,7 @@ const common = {
   footer: {
     copyright: '© {{year}} Rewards Console. All rights reserved.',
     terms: 'Terms of Service',
+    privacy: 'Privacy Policy',
     support: 'Support',
   },
   errors: {

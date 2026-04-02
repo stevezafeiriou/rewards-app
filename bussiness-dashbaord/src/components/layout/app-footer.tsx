@@ -29,6 +29,9 @@ export function AppFooter({ showSupport = false }: { showSupport?: boolean }) {
         <a className="underline underline-offset-4 transition-colors hover:text-foreground" href="/terms">
           {t('common.footer.terms')}
         </a>
+        <a className="underline underline-offset-4 transition-colors hover:text-foreground" href="/privacy">
+          {t('common.footer.privacy')}
+        </a>
         <LanguageSwitcher compact className="self-start sm:self-auto" />
       </div>
     </footer>

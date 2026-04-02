@@ -1,0 +1,65 @@
+PROPRIETARY SOFTWARE LICENSE
+
+Copyright (c) 2026 SAPHIRE | STEFANOS D. ZAFEIRIOU
+All rights reserved.
+
+This software, including without limitation all source code, object code, user
+interfaces, workflows, database schemas, configuration, documentation, design
+assets, text, graphics, and other materials contained in or distributed with
+this project (the "Software"), is proprietary and confidential and is owned by
+SAPHIRE | STEFANOS D. ZAFEIRIOU ("Licensor"), unless expressly stated
+otherwise in a separate written notice.
+
+No license or other right to use, copy, reproduce, modify, distribute,
+publish, sublicense, sell, lease, transfer, create derivative works from,
+reverse engineer, decompile, disassemble, disclose, or otherwise exploit the
+Software is granted by possession of this repository or access to its contents,
+except to the extent expressly granted in a separate written agreement signed
+by the Licensor.
+
+Without limiting the foregoing, you may not, without the Licensor's prior
+written consent:
+
+1. use the Software for any commercial or internal business purpose;
+2. copy or redistribute the Software or any substantial part of it;
+3. modify, adapt, translate, or create derivative works of the Software;
+4. reverse engineer, decompile, disassemble, or otherwise attempt to derive
+   source code, trade secrets, or underlying ideas from the Software;
+5. remove, alter, or obscure any copyright, trademark, confidentiality, or
+   proprietary notices; or
+6. make the Software available to any third party by any means.
+
+Any unauthorised use of the Software is strictly prohibited and may violate
+copyright, trade secret, trademark, and other applicable laws.
+
+If you have entered into a separate written agreement with the Licensor or with
+an authorised licensee of the Licensor governing your use of the Software, your
+rights are limited exclusively by that agreement, and this notice shall govern
+all matters not expressly covered therein.
+
+This repository may include third-party software or components that are subject
+to their own license terms. Such third-party materials are licensed separately
+by their respective rights holders and are not covered by this proprietary
+license except as to the Licensor's own rights, if any, in their arrangement or
+integration.
+
+THE SOFTWARE IS PROVIDED "AS IS" AND "AS AVAILABLE," WITHOUT WARRANTY OF ANY
+KIND, EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION ANY WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, TITLE, NON-INFRINGEMENT,
+ACCURACY, OR THAT THE SOFTWARE WILL BE ERROR-FREE, SECURE, OR UNINTERRUPTED, TO
+THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW.
+
+TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW, THE LICENSOR SHALL NOT BE
+LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, EXEMPLARY, OR
+PUNITIVE DAMAGES, OR FOR ANY LOSS OF PROFITS, REVENUE, DATA, BUSINESS, GOODWILL
+OR OPPORTUNITY, ARISING OUT OF OR RELATING TO THE SOFTWARE OR THIS LICENSE
+NOTICE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
+
+This license notice shall be governed by and construed in accordance with the
+laws of Greece, excluding conflict-of-laws rules. Any dispute arising out of or
+in connection with this license notice shall be subject to the exclusive
+jurisdiction of the competent courts of Thessaloniki, Greece, unless mandatory
+law provides otherwise.
+
+For licensing requests, permissions, or commercial enquiries, contact:
+steve(at)saphirelabs.com
